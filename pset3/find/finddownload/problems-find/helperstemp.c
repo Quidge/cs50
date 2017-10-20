@@ -35,6 +35,23 @@ bool search(int value, int values[], int n)
  */
 void sort(int values[], int n)
 {
-    // TODO: implement a sorting algorithm
+    int finalArray[n];
+    int countingArray[65536];
+
+    for (int i = 0; i < n; i++)
+    {
+        countingArray[values[i]] = countingArray[values[i]] + 1;
+    }
+    int currentIndex = 0;
+    for (int j = 0; j < 65536; j++)
+    {
+        for (int k = 0; countingArray[j] > 0 && k < countingArray[j]; k++)
+        {
+            finalArray[curren˜tIndex] = countingArray[j];
+            currentIndex++;
+        }
+    }
+    values = finalArray;
     return;
 }
+
