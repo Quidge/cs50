@@ -1,8 +1,6 @@
 #include <cs50.h>
 #include <stdio.h>
 
-const int MAX = 65536;
-
 void sort(int values[], int n);
 
 int main(void) {
@@ -25,6 +23,8 @@ int main(void) {
 
 void sort(int values[], int n)
 {
+    const int MAX = 65536;
+
     // setup countingArray and be sure that all elements are value 0
     int countingArray[MAX];
     for (int i = 0; i < MAX; i++)
