@@ -32,51 +32,53 @@ bool search(int target, int values[], int n)
     printf("\n");
     while (n > 0)
     {
-        int middlei;
-        int middleVal;
-        if (n%2 != 0)
-        {
-            middlei = (n - 1) / 2;
-            middleVal = values[middlei];
-        }
-        else
-        {
-            middlei = n/2;
-            middleVal = values[middlei];
-        }
+        // Set middle value; sets to right of middle if even: ie 4 vals, middleVal is index 2
+        int middlei = (n%2 != 0) ? (n-1)/2 : n/2;
+        int middleVal = values[middlei];
         printf("middle index: %i, middleVal: %i\n", middlei, middleVal);
+
+        // shortcircuit if middle happens to be target
         if (target == middleVal)
         {
             printf("found!\n\n");
             return true;
         }
+        // If middle index is 0, search section n must be of length 1. And if the
+        // previous if conditional didn't cause a short circuit, that must mean the
+        // target is outside the range of the search array and the search should fail.
         else if (middlei == 0)
         {
             return false;
         }
+        // Break the array that was passed in into left and right sections to be
+        // recursively searched again.
         else if (target > middleVal)
         {
             printf("target > middleVal\n");
             int rightSide[middlei];
-            int j = 0;
+            int newLen = 0;
+            // Don't include the middleindex value because that was already checked
+            // against the target.
             for (int i = middlei + 1; i < n; i++)
             {
-                rightSide[j] = values[i];
-                j++;
+                rightSide[i - middlei - 1] = values[i];
+                newLen++;
             }
-            return search(target, rightSide, j);
+            return search(target, rightSide, newLen);
         }
         else
         {
             printf("target < middleVal\n");
             int leftSide[middlei];
-            int leftLength = 0;
+            int newLen = 0;
+            // Don't include the middleindex value because that was already checked
+            // against the target.
             for (int i = 0; i < middlei; i++)
             {
                 leftSide[i] = values[i];
-                leftLength++;
+                newLen++;
             }
-            return search(target, leftSide, leftLength);
+            return search(target, leftSide, newLen);
         }
     }
    return false;

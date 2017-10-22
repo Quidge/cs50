@@ -1,28 +1,46 @@
-/**
- * helpers.c
- *
- * Helper functions for Problem Set 3.
- */
-
-#include <cs50.h>
 #include <stdio.h>
+#include <cs50.h>
 
-#include "helpers.h"
+bool search(int target, int values[], int n);
+void sort(int values[], int n);
 
-/**
- * Returns true if value is in array of n values, else false.
- */
+int main(void)
+{
+    int array[3] = {25,26,27};
+    /*for (int i = 0; i < 5; i++)
+    {
+        printf("index = %i, val = %i\n", i, array[i]);
+    }
+    sort(array, 5);
+    printf("sorted:\n");
+    for (int i = 0; i < 5; i++)
+    {
+        printf("index = %i, val = %i\n", i, array[i]);
+    }*/
+    sort(array, 3);
+    search(22, array, 3);
+}
+
 bool search(int target, int values[], int n)
 {
+    printf("searching for: %i\n", target);
+    printf("passed array contains: ");
+    for (int q = 0; q < n; q++)
+    {
+        printf("%i ", values[q]);
+    }
+    printf("\n");
     while (n > 0)
     {
         // Set middle value; sets to right of middle if even: ie 4 vals, middleVal is index 2
         int middlei = (n%2 != 0) ? (n-1)/2 : n/2;
         int middleVal = values[middlei];
+        printf("middle index: %i, middleVal: %i\n", middlei, middleVal);
 
         // shortcircuit if middle happens to be target
         if (target == middleVal)
         {
+            printf("found!\n\n");
             return true;
         }
         // If middle index is 0, search section n must be of length 1. And if the
@@ -57,16 +75,12 @@ bool search(int target, int values[], int n)
                     newLen++;
                 }
             }
-            // Recursion. Pass in increasingly smaller subsections.
             return search(target, subsection, newLen);
         }
     }
    return false;
 }
 
-/**
- * Sorts array of n values.
- */
 void sort(int values[], int n)
 {
     const int MAX = 65536;
