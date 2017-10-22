@@ -1,18 +1,35 @@
-/**
- * helpers.c
- *
- * Helper functions for Problem Set 3.
- */
-
+#include <stdio.h>
 #include <cs50.h>
 
-#include "helpers.h"
+bool search(int target, int values[], int n);
+void sort(int values[], int n);
 
-/**
- * Returns true if value is in array of n values, else false.
- */
+int main(void)
+{
+    int array[3] = {25,26,27};
+    /*for (int i = 0; i < 5; i++)
+    {
+        printf("index = %i, val = %i\n", i, array[i]);
+    }
+    sort(array, 5);
+    printf("sorted:\n");
+    for (int i = 0; i < 5; i++)
+    {
+        printf("index = %i, val = %i\n", i, array[i]);
+    }*/
+    sort(array, 3);
+    search(22, array, 3);
+}
+
 bool search(int target, int values[], int n)
 {
+    printf("searching for: %i\n", target);
+    printf("passed array contains: ");
+    for (int q = 0; q < n; q++)
+    {
+        printf("%i ", values[q]);
+    }
+    printf("\n");
     while (n > 0)
     {
         int middlei;
@@ -25,61 +42,46 @@ bool search(int target, int values[], int n)
         else
         {
             middlei = n/2;
-            middleVal = values[middlei - 1];
+            middleVal = values[middlei];
         }
-
+        printf("middle index: %i, middleVal: %i\n", middlei, middleVal);
         if (target == middleVal)
         {
+            printf("found!\n\n");
             return true;
+        }
+        else if (middlei == 0)
+        {
+            return false;
         }
         else if (target > middleVal)
         {
-            int rightSide[];
-            for (int i = middlei + 1, int j = 0; i < n; i++)
+            printf("target > middleVal\n");
+            int rightSide[middlei];
+            int j = 0;
+            for (int i = middlei + 1; i < n; i++)
             {
                 rightSide[j] = values[i];
                 j++;
             }
-            search(target, rightSide, j + 1);
+            return search(target, rightSide, j);
         }
         else
         {
-            int leftSide[];
+            printf("target < middleVal\n");
+            int leftSide[middlei];
             int leftLength = 0;
-            for (int i = 0; i < middle; i++)
+            for (int i = 0; i < middlei; i++)
             {
                 leftSide[i] = values[i];
+                leftLength++;
             }
-            search(target, leftSide, i + 1);
+            return search(target, leftSide, leftLength);
         }
     }
-   /* pseudo code:
-   * take middle (rounded down) of array
-   * if target IS middle, return true
-   * if target > middle, recurse with right side
-   * if target < middle, recurse with left side
-
-
-   */
-
-    // SLOW: linear search O(n)
-
-    /*for (int i = 0; i < n; i++)
-    {
-        if (value == values[i])
-        {
-            return true;
-        }
-    }*/
-
-    // FASTER: binary search O(log n) (requires sorted array)
-
-    return false;
+   return false;
 }
 
-/**
- * Sorts array of n values.
- */
 void sort(int values[], int n)
 {
     const int MAX = 65536;
