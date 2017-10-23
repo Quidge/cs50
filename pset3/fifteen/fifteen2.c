@@ -23,7 +23,6 @@
 #define DIM_MIN 3
 #define DIM_MAX 9
 
-// I really wish these weren't out in the open as global vars.
 // board
 int board[DIM_MAX][DIM_MAX];
 
@@ -166,10 +165,6 @@ void init()
             counter++;
         }
     }
-    // Exception to deal with odd number of tiles. Tile '1' and '2'
-    // should be switched if there are an odd number of tiles. Remember
-    // an even number of spaces will give an odd number of movable game
-    // tiles.
     if (d%2 == 0)
     {
         board[d-1][d-2] = 2;
@@ -190,9 +185,6 @@ void draw(void)
             int val = board[row][col];
             if (val != 0)
             {
-                // Numbers < 10 take up one character, > 9 take up two
-                // characters. The additional space for single char
-                // numbers is necessary to avoid screwing up the spacing.
                 if (val < 10)
                 {
                     printf("  %i ", val);
@@ -218,8 +210,7 @@ void draw(void)
  */
 bool move(int tile)
 {
-    // inputting -42 will reorder all tiles into a winning configuration
-    if (tile == -42)
+    if (tile == 42)
     {
         int counter = 1;
         for (int row = 0; row < d; row++)
@@ -236,10 +227,6 @@ bool move(int tile)
 
     int rowPos = -1;
     int colPos = -1;
-
-    // There is 110% a more elegent way to do this. One way would be having
-    // a single direction var and storing 1,2,3,4 or 0 for up=true, right=true, ...,
-    // none=true respectively.
     int oldVal;
     bool above;
     bool below;
@@ -295,8 +282,7 @@ bool move(int tile)
         board[rowPos][colPos] = 0;
         board[rowPos][colPos + 1] = oldVal;
     }
-    else //no directions allow movement; the tile is landlocked and move
-    // is illegal
+    else
     {
         return false;
     }
@@ -310,11 +296,6 @@ bool move(int tile)
  */
 bool won(void)
 {
-    /*  'check' is compared against every cell incrementally from top-left
-    *   to bottom-right and incremented after each comparison. If at any
-    *   point the check fails, it must mean that one of the tiles is
-    *   out of order and the game is not in a winning configuration.
-    */
     int check = 1;
     for (int row = 0; row < d; row++)
     {
