@@ -71,21 +71,24 @@ int main(int argc, char *argv[])
         return 5;
     }
 
-    // determine resized dimensions (int truncates fractional part)
+    // determine resized dimensions (int truncates fractional part, this isn't great)
     // deal with edge cases where new dimensions would be < 1 and truncated to 0
-    int newHeight = scaleF * abs(bi.biHeight);
+    int newHeight = scaleF * bi.biHeight;
     if (newHeight == 0)
     {
         newHeight = 1;
     }
-    int newWidth = scaleF * abs(bi.biWidth);
+    int newWidth = scaleF * bi.biWidth;
     if (newWidth == 0)
     {
         newWidth = 1;
     }
 
-    //Determine new file scanline padding
-    int padding = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;
+    printf("Scale: %f, old dimensions: %ix%i, new dimensions: %ix%i\n",
+        scaleF, abs(bi.biHeight), bi.biWidth, newHeight, newWidth);
+
+    // determine scanline padding for newfile
+    int padding = (4 - (newWidth * sizeof(RGBTRIPLE)) % 4) % 4;
 
     //Update header values to be correct for output file
     bi.biWidth = (LONG) newWidth;
@@ -93,5 +96,28 @@ int main(int argc, char *argv[])
     bf.bfSize = sizeof(BITMAPINFOHEADER) + sizeof(BITMAPFILEHEADER)
         + ((newWidth * (sizeof(RGBTRIPLE) + sizeof(WORD) * padding))
         * newHeight);
-    printf("%i\n", bf.bfSize);
+    bi.biSizeImage = (newWidth + padding) * abs(newHeight);
+
+    // Write new headers to resized file
+    fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, outptr);
+    fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, outptr);
+
+    // iterate through scanlines from oldFile
+    for (int i = 0; i < abs(newHeight); i++)
+    {
+        // iterate through pixels on each scaline
+        for (int j = 0; j < newWidth; j++)
+        {
+            // lol so i'm just going to write over every pixel with black
+            RGBTRIPLE temp = {0x00, 0x00, 0x00};
+            fwrite(&temp, sizeof(RGBTRIPLE), 1, outptr);
+        }
+
+        for (int j = 0; j < padding; j++)
+        {
+            fputc(0x00, outptr);
+        }
+    }
+    fclose(inptr);
+    fclose(outptr);
 }
