@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
     // Idea: if scale factor is even integer, life is easy. Original pixel
     // represents #scale factor pixels.
     //
-    // Ultimately, idea is this. Sum of orig dimension (oD) and scaleF is
+    // Ultimately, idea is this. Product of orig dimension (oD) and scaleF is
     // new dimension (nD).
     // > Get GCF of oD and nD
     // > oD / GCF = oDF and nD / GCF = nDF
@@ -129,10 +129,24 @@ int main(int argc, char *argv[])
     // inherently clip when oDF > nDF, and this is why it's stupid).
     // For nDF > oDF, it should actually work out fine.
 
+    int aY = abs(in_bi.biHeight), aX = in_bi.biWidth;
+    int bY = abs(out_bi.biHeight), bX = out_bi.biWidth;
+
+    int gcfY = gcf(aY, bY), gcfX = gcf(aX, bX);
+
+    int aYFactor = aY / gcfY, aXFactor = aX / gcfX;
+    int bYFactor = bY / gcfY, bXFactor = bX / gcfX;
+
+    int overflowY = aYFactor - bYFactor;
+    int overflowX = aXFactor - bXFactor;
+
     // run through scanlines of infile
-    for (int row = 0, rowlen = abs(in_bi.biHeight); row < rowlen; row++)
+    for (int row = 0, height = abs(out_bi.biHeight); row < rowlen; row++)
     {
-        for
+        for (int block = 0, len = gcfX; block < len; block++)
+        {
+            fread(&temp, sizeof)
+        }
     }
     fclose(inptr);
     fclose(outptr);
