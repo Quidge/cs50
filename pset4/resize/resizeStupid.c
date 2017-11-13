@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "bmp.h"
+// I could include greatest common factor as a module, but I don't think it would pass submit50
+
+int gcf(int a, int b);
 
 /*  Here's what I'm thinking:
 *   No decimal enlargements are easy. An f of 4 would mean that the
@@ -56,14 +59,14 @@ int main(int argc, char *argv[])
     }
 
     // Setup BMP headers
-    BITMAPFILEHEADER bf;
-    fread(&bf, sizeof(BITMAPFILEHEADER), 1, inptr);
-    BITMAPINFOHEADER bi;
-    fread(&bi, sizeof(BITMAPINFOHEADER), 1, inptr);
+    BITMAPFILEHEADER in_bf;
+    fread(&in_bf, sizeof(BITMAPFILEHEADER), 1, inptr);
+    BITMAPINFOHEADER in_bi;
+    fread(&in_bi, sizeof(BITMAPINFOHEADER), 1, inptr);
 
     // Validate BMP infile to be resized is 24-bit uncompressed
-    if (bf.bfType != 0x4d42 || bf.bfOffBits != 54 || bi.biSize != 40 ||
-        bi.biBitCount != 24 || bi.biCompression != 0)
+    if (in_bf.bfType != 0x4d42 || in_bf.bfOffBits != 54 || in_bi.biSize != 40 ||
+        in_bi.biBitCount != 24 || in_bi.biCompression != 0)
     {
         fclose(inptr);
         fclose(outptr);
@@ -71,53 +74,75 @@ int main(int argc, char *argv[])
         return 5;
     }
 
+    // Setup outfile headers
+    BITMAPFILEHEADER out_bf = in_bf;
+    BITMAPINFOHEADER out_bi = in_bi;
+
     // determine resized dimensions (int truncates fractional part, this isn't great)
     // deal with edge cases where new dimensions would be < 1 and truncated to 0
-    int newHeight = scaleF * bi.biHeight;
+    int newHeight = scaleF * in_bi.biHeight;
     if (newHeight == 0)
     {
         newHeight = 1;
     }
-    int newWidth = scaleF * bi.biWidth;
+    int newWidth = scaleF * in_bi.biWidth;
     if (newWidth == 0)
     {
         newWidth = 1;
     }
 
     printf("Scale: %f, old dimensions: %ix%i, new dimensions: %ix%i\n",
-        scaleF, abs(bi.biHeight), bi.biWidth, newHeight, newWidth);
+        scaleF, abs(in_bi.biHeight), in_bi.biWidth, newHeight, newWidth);
 
     // determine scanline padding for newfile
     int padding = (4 - (newWidth * sizeof(RGBTRIPLE)) % 4) % 4;
 
     //Update header values to be correct for output file
-    bi.biWidth = (LONG) newWidth;
-    bi.biHeight = (LONG) newHeight;
+    out_bi.biWidth = (LONG) newWidth;
+    out_bi.biHeight = (LONG) newHeight;
     // size in bytes of the image itself (+ padding bytes)
-    bi.biSizeImage = ((newWidth * sizeof(RGBTRIPLE)) + padding) * abs(newHeight);
+    out_bi.biSizeImage = ((newWidth * sizeof(RGBTRIPLE)) + padding) * abs(newHeight);
     // size in bytes of the image (bi.biSizeImage) + headers
-    bf.bfSize = bi.biSizeImage + sizeof(BITMAPINFOHEADER) + sizeof(BITMAPFILEHEADER);
+    out_bf.bfSize = out_bi.biSizeImage + sizeof(BITMAPINFOHEADER) + sizeof(BITMAPFILEHEADER);
 
     // Write new headers to resized file
-    fwrite(&bf, sizeof(BITMAPFILEHEADER), 1, outptr);
-    fwrite(&bi, sizeof(BITMAPINFOHEADER), 1, outptr);
+    fwrite(&out_bf, sizeof(BITMAPFILEHEADER), 1, outptr);
+    fwrite(&out_bi, sizeof(BITMAPINFOHEADER), 1, outptr);
 
-    // iterate through scanlines from oldFile
-    for (int i = 0; i < abs(newHeight); i++)
+    // idiot resize algo because i'm not smart
+    // Idea: if scale factor is even integer, life is easy. Original pixel
+    // represents #scale factor pixels.
+    //
+    // Ultimately, idea is this. Sum of orig dimension (oD) and scaleF is
+    // new dimension (nD).
+    // > Get GCF of oD and nD
+    // > oD / GCF = oDF and nD / GCF = nDF
+    // The pixels composing oDF are responsible for what will compose
+    // nDF. So for a 50x50 -> 30x30 resize, GCF is 10, oDF is 5, and
+    // nDF is 3. So 5 pixels of the old image will be responsible
+    // for 3 pixels of the new image.
+    //
+    // Here's where it gets stupid.
+    //
+    // My idea is this: overflow = oDF - nDF
+    // Write (oDF - overflow) pixels to nDF pixel area (this will
+    // inherently clip when oDF > nDF, and this is why it's stupid).
+    // For nDF > oDF, it should actually work out fine.
+
+    // run through scanlines of infile
+    for (int row = 0, rowlen = abs(in_bi.biHeight); row < rowlen; row++)
     {
-        // iterate through pixels on each scaline
-        for (int j = 0; j < newWidth; j++)
-        {
-            // lol so i'm just going to write over every pixel with black
-            RGBTRIPLE temp = {0x00, 0x00, 0x00};
-            fwrite(&temp, sizeof(RGBTRIPLE), 1, outptr);
-        }
-
-        for (int j = 0; j < padding; j++)
-        {
-            fputc(0x00, outptr);
-        }
+        for
     }
     fclose(inptr);
     fclose(outptr);
+}
+
+int gcf(int a, int b)
+{
+  int c;
+  while ( a != 0 ) {
+     c = a; a = b%a;  b = c;
+  }
+  return b;
 }
