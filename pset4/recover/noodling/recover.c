@@ -72,25 +72,78 @@ int main(int argc, char *argv[])
         return 2;
     }
 
+    /*fingp[0], fingp[1], fingp[2], fingp[3] = 0;
+    for (int i = 0; i < 4 && feof(inptr) == 0; i++)
+    {
+        fingp[0] = fingp[1];
+        fingp[1] = fingp[2];
+        fingp[2] = fingp[3];
+        fread(&fingp[3], sizeof(BYTE), 1, inptr);
+    }
+    fseek(inptr, -4, SEEK_CUR);
+    printf("before read: %i, %i, %i, %i\n", fingp[0], fingp[1], fingp[2], fingp[3]);
+
+    fread(temp, sizeof(BYTE), 512, inptr);
+    fwrite(temp, sizeof(BYTE), 512, newFile);
+
+    fingp[0], fingp[1], fingp[2], fingp[3] = 0;
+    for (int i = 0; i < 4 && feof(inptr) == 0; i++)
+    {
+        fingp[0] = fingp[1];
+        fingp[1] = fingp[2];
+        fingp[2] = fingp[3];
+        fread(&fingp[3], sizeof(BYTE), 1, inptr);
+    }
+    fseek(inptr, -4, SEEK_CUR);
+    printf("after read: %i, %i, %i, %i\n", fingp[0], fingp[1], fingp[2], fingp[3]);*/
+
     while (feof(inptr) == 0)
     {
-        fread(temp, sizeof(BYTE), 512, inptr);
-
+        // Get new file ready with name, run check to be sure
+        // it isn't a NULL pointer
         char newFileName[50];
         sprintf(newFileName, "%d.JPG", curFile);
         curFile++;
-
-        printf("OI!: %d\n", feof(inptr));
-
         FILE *newFile = fopen(newFileName, "w");
         if (newFile == NULL)
         {
             fprintf(stderr, "fopen opened to a NULL pointer");
+            fclose(newFile);
+            fclose(inptr);
+            free(temp);
             return 2;
         }
+
+        // write the first 512 byte block into the new JPG
+        fread(temp, sizeof(BYTE), 512, inptr);
         fwrite(temp, sizeof(BYTE), 512, newFile);
+
+        // next section determines if the file continues on the recovery
+        // section, and keeps going if so
+        do
+        {
+            fread(temp, sizeof(BYTE), 512, inptr);
+            fwrite(temp, sizeof(BYTE), 512, newFile);
+
+            //fingp[0], fingp[1], fingp[2], fingp[3] = 0;
+            fingp[0] = 0;
+            fingp[1] = 0;
+            fingp[2] = 0;
+            fingp[3] = 0;
+            for (int i = 0; i < 4 && feof(inptr) == 0; i++)
+            {
+                fingp[0] = fingp[1];
+                fingp[1] = fingp[2];
+                fingp[2] = fingp[3];
+                fread(&fingp[3], sizeof(BYTE), 1, inptr);
+            }
+            fseek(inptr, -4, SEEK_CUR);
+        }
+        while (!(fingp[0] == 0xff && fingp[1] == 0xd8 &&
+                fingp[2] == 0xff &&
+                (fingp[3] >= 0xe0 && fingp[3] <= 0xef)));
+
         fclose(newFile);
-        printf("%d\n", feof(inptr));
     }
 
     free(temp);
