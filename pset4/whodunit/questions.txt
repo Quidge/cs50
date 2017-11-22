@@ -1,0 +1,19 @@
+1.  <stdint.h> is a header that gives definitions for the different int widths.
+2.  Using unit8_t, uint32_t, int32_t, or uint16_t in your program inidcates to other individuals
+    specificity about the possible width of the ints.
+3.  1, 4, 4, 2.
+4.  The first two bytes must be "BM" in ASCII, 66 77 in decimal, or 0x42 0x4D in hex.
+5.  bfSize is a 4 byte int giving the size of the file. biSize is a 4 byte int that details the
+    size of the header struct.
+6.  If biHeight is negative, the pixels stored in the file are stored from bottom to top with the bottom
+    left pixel being the first.
+7.  biBitCount indicates the number of bits that will represent a pixel (and thus the range of possible
+    colors for a pixel).
+8.  If there were insufficient stack space (I think), or the system did not have the appropriate read/write
+    access, fopen could return NULL.
+9.  The size arguement in either case is set to the size of the entire struct itself. Thefore, only on
+    iteration needs to be run (after fread returns, it sets the 'seek' position to where it stopped).
+10. copy.c assigns a value of 3 to padding.
+11. fseek moves the FILE object position indicate to the byte specified through the combination of offset
+    and whence arguments.
+12. SEEK_CUR is the current byte position indicator of a FILE object.
