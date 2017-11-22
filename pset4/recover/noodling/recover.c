@@ -2,6 +2,17 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+/* General idea:
+ * - Move through the file byte by byte till fingerprint region is found.
+ * - Rewind so that the very next byte is the start of the fingerprint region.
+ *      - Copy 512 bytes from the file, at current file position. Repeat
+ *      until 512 byte block is found that AGAIN begins with a JPG byte
+ *      fingerprint region. This boundary is the end of one JPG and the
+ *      beginning of another.
+ * - Repeat again, copying information into a new file.
+ */
+
+
 typedef uint8_t BYTE;
 
 int main(int argc, char *argv[])
@@ -19,13 +30,12 @@ int main(int argc, char *argv[])
         return 2;
     }
 
-
     //temp fingerprint region holder
     BYTE fingp[] = {0,0,0,0};
 
-    // *read bytes into fingp.
-    // *compare each series of bytes in fingp with JPEG fingerprint
-    // *if fingerprints match, assign found to 1
+    // read bytes into fingp.
+    // compare each series of bytes in fingp with JPEG fingerprint
+    // if fingerprints match, assign found to 1
     int found = 0;
     while (found == 0 && feof(inptr) == 0)
     {
@@ -39,24 +49,16 @@ int main(int argc, char *argv[])
             (fingp[3] >= 0xe0 && fingp[3] <= 0xef))
         {
             found = 1;
-            printf("Found it.\n");
-            printf("%li\n",ftell(inptr));
             fseek(inptr, -4, SEEK_CUR);
-            printf("%li\n",ftell(inptr));
         }
     };
-    printf("%x | %x | %x | %x\n", fingp[0], fingp[1], fingp[2], fingp[3]);
 
-    if (found == 1)
+    // If no JPG byte signature is found, exit the file.
+    if (found == 0)
     {
-        printf("we go it!\n");
-    } else
-    {
-        printf("didn't find it\n");
+        fprintf(stdout, "No evidence of JPG files found in %s\n", argv[1]);
+        return 3;
     }
-
-    // now that i have inptr file position set to where the first jpeg
-    // begins, i can begin writing 512 byte blocks to new files
 
     // this will be the incrementor for JPG naming
     int curFile = 1;
@@ -66,6 +68,7 @@ int main(int argc, char *argv[])
     if (temp == NULL)
     {
         fprintf(stderr, "malloc could not find space.");
+        fclose(inptr);
         return 2;
     }
 
@@ -74,8 +77,9 @@ int main(int argc, char *argv[])
         // Get new file ready with name, run check to be sure
         // it isn't a NULL pointer
         char newFileName[50];
-        sprintf(newFileName, "%d.JPG", curFile);
+        sprintf(newFileName, "%03d.JPG", curFile);
         curFile++;
+
         FILE *newFile = fopen(newFileName, "w");
         if (newFile == NULL)
         {
@@ -98,7 +102,7 @@ int main(int argc, char *argv[])
             fread(temp, sizeof(BYTE), 512, inptr);
             fwrite(temp, sizeof(BYTE), 512, newFile);
 
-            //fingp[0], fingp[1], fingp[2], fingp[3] = 0;
+            // zero out fingerprint region
             fingp[0] = 0;
             fingp[1] = 0;
             fingp[2] = 0;
@@ -125,5 +129,4 @@ int main(int argc, char *argv[])
 
     free(temp);
     fclose(inptr);
-    printf("%d", curFile);
 }
