@@ -34,7 +34,13 @@ int main(int argc, char *argv[])
     }
     fclose(fp);
 
+    // setup root node
     node *root = malloc(sizeof(node));
+    for (int i = 0; i < 26; i++)
+    {
+        root -> next_char[i] = NULL;
+    }
+    root -> prev_char = NULL;
 
     char *word = "he";
     insert(word, root);
@@ -54,10 +60,16 @@ void insert(char *word, node *root)
     {
         if (head -> next_char[word[c] - 65] == NULL)
         {
+            // child doesn't exist, so setup new child
             node *child = malloc(sizeof(node));
             child -> prev_char = head;
             child -> end_string = 0;
+            for (int i = 0; i < 26; i++)
+            {
+                child -> next_char[i] = NULL;
+            }
 
+            // child becomes new head
             head -> next_char[word[c] - 65] = child;
             head = child;
         }
@@ -86,10 +98,9 @@ unsigned int size(node *root)
         {
             if (head -> next_char[i] != NULL)
             {
-                count += size(head -> next_char[i]);
+                count = count + size(head -> next_char[i]);
             }
         }
     }
-
     return count;
 }
