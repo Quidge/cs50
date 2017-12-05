@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     }
     fclose(fp);
 
-    // setup root node
+    // setup root manode
     node *root = malloc(sizeof(node));
     for (int i = 0; i < 26; i++)
     {
@@ -42,11 +42,18 @@ int main(int argc, char *argv[])
     }
     root -> prev_char = NULL;
 
-    char *word = "he";
+    char *word = "ab";
     insert(word, root);
+    insert("abra", root);
+    insert("aba", root);
+    insert("data", root);
+    insert("abraca", root);
     //unsigned int count = size(root);
 
     printf("%i\n", size(root));
+    //node *second = root -> next_char[0];
+    //printf("%s\n", (root -> next_char[0] != NULL) ? "true" : "false");
+    //printf("%i\n", word[0]-65);
 
     free(root);
 }
@@ -58,7 +65,7 @@ void insert(char *word, node *root)
 
     while (word[c] != '\0')
     {
-        if (head -> next_char[word[c] - 65] == NULL)
+        if (head -> next_char[word[c] - 'a'] == NULL)
         {
             // child doesn't exist, so setup new child
             node *child = malloc(sizeof(node));
@@ -70,17 +77,16 @@ void insert(char *word, node *root)
             }
 
             // child becomes new head
-            head -> next_char[word[c] - 65] = child;
+            head -> next_char[word[c] - 'a'] = child;
             head = child;
         }
         else
         {
-            head = head -> next_char[word[c] - 65];
+            head = head -> next_char[word[c] - 'a'];
         }
         c++;
     }
     head -> end_string = 1;
-    printf("%i\n", c);
 }
 
 unsigned int size(node *root)
@@ -90,16 +96,14 @@ unsigned int size(node *root)
 
     if (head -> end_string == 1)
     {
-        return 1;
+        count++;
     }
-    else
+
+    for (int i = 0; i < 26; i++)
     {
-        for (int i = 0; i < 26; i++)
+        if (head -> next_char[i] != NULL)
         {
-            if (head -> next_char[i] != NULL)
-            {
-                count = count + size(head -> next_char[i]);
-            }
+            count = count + size(head -> next_char[i]);
         }
     }
     return count;
