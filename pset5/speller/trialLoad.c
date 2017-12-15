@@ -45,18 +45,16 @@ int main(int argc, char *argv[])
     }
     root -> prev_char = NULL;
 
-    char *word = "ab";
+    char word[] = "abra's";
     insert(word, root);
-    insert("abra's", root);
-    insert("aba", root);
+    //insert("abra's", root);
+    /*insert("aba", root);
     insert("data", root);
-    insert("abraca", root);
+    insert("abraca", root);*/
     printf("all words loaded\n");
 
     printf("%i\n", size(root));
-    printf("root address before unload: %p\n", root);
     unload(root);
-    printf("root address after unload: %p\n", root);
     if (root -> next_char[0] == NULL)
     {
         printf("yeah!");
@@ -64,7 +62,7 @@ int main(int argc, char *argv[])
     printf("%i\n", size(root));
 }
 
-void insert(char *word, node *root)
+void insert(char word[], node *root)
 {
     node *head = root;
     int c = 0;
@@ -77,7 +75,9 @@ void insert(char *word, node *root)
             // left bracket comes immediately after z, and - 'a' will
             // be == 26
             printf("switched up\n");
-            word[c] = 123;
+            printf("%i\n", word[c]);
+            word[c] = 0x7B;
+            printf("%i\n", word[c]);
         }
         if (head -> next_char[word[c] - 'a'] == NULL)
         {

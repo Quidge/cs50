@@ -2,7 +2,7 @@
 
 int main()
 {
-    char *str = "string's";
+    /*char *str = "string's";
 
     int c = 0;
     while (str[c] != '\0')
@@ -13,5 +13,17 @@ int main()
             printf("true!\n");
         }
         c++;
+    }*/
+
+    char str[] = "hello";
+    str[0] = 'N';
+    printf("%s\n", str);
+
+    char *strB = "hello";
+    while (*strB != '\0')
+    {
+        printf("%c", *strB);
+        strB++;
     }
+    printf("\ndone\n");
 }
