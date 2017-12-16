@@ -22,8 +22,12 @@ int main()
     char *strB = "hello";
     while (*strB != '\0')
     {
-        printf("%c", *strB);
+        if (*strB == 'l')
+        {
+            *strB = 'k';
+        }
         strB++;
+        printf("%c", *strB);
     }
     printf("\ndone\n");
 }

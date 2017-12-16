@@ -18,7 +18,7 @@ typedef struct node
 node;
 
 unsigned int size(node *root);
-void insert(char *word, node *root);
+void insert(char word[], node *root);
 int unload(node *root);
 
 int main(int argc, char *argv[])
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     }
     fclose(fp);
 
-    // setup root manode
+    // setup root node
     node *root = malloc(sizeof(node));
     for (int i = 0; i < CHARSETSIZE; i++)
     {
@@ -46,40 +46,31 @@ int main(int argc, char *argv[])
     root -> prev_char = NULL;
 
     char word[] = "abra's";
+    char word2[] = "elephant";
     insert(word, root);
-    //insert("abra's", root);
-    /*insert("aba", root);
-    insert("data", root);
-    insert("abraca", root);*/
+    insert(word2, root);
     printf("all words loaded\n");
 
     printf("%i\n", size(root));
     unload(root);
-    if (root -> next_char[0] == NULL)
-    {
-        printf("yeah!");
-    }
     printf("%i\n", size(root));
 }
 
 void insert(char word[], node *root)
 {
     node *head = root;
-    int c = 0;
+    char *c = word;
 
-    while (word[c] != '\0')
+    while (*c != '\0')
     {
 
-        if (word[c] == 39)
+        if (*c == 39)
         {
             // left bracket comes immediately after z, and - 'a' will
             // be == 26
-            printf("switched up\n");
-            printf("%i\n", word[c]);
-            word[c] = 0x7B;
-            printf("%i\n", word[c]);
+            *c = 0x7B;
         }
-        if (head -> next_char[word[c] - 'a'] == NULL)
+        if (head -> next_char[*c - 'a'] == NULL)
         {
             // child doesn't exist, so setup new child
             node *child = malloc(sizeof(node));
@@ -91,12 +82,12 @@ void insert(char word[], node *root)
             }
 
             // child becomes new head
-            head -> next_char[word[c] - 'a'] = child;
+            head -> next_char[*c - 'a'] = child;
             head = child;
         }
         else
         {
-            head = head -> next_char[word[c] - 'a'];
+            head = head -> next_char[*c - 'a'];
         }
         c++;
     }
