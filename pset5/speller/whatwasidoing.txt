@@ -1,0 +1,6 @@
+12/17:
+- was in the process of implementing check() inside dictionary.c
+    - stuck on the part where check is passed a const string, and i
+    can't do shit with a const string. so i tried to duplicate the const
+    parameter string, but you kinda(?) can't do that. that's what i'm
+    stuck on.

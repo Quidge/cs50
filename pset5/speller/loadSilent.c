@@ -5,6 +5,8 @@
 #define CHARSETSIZE 27
 #define LENGTH 45
 
+#define DICTIONARY "dictionaries/large"
+
 // Model heavily taken from CS50 shorts on tries and
 // http://www.crazyforcode.com/trie-data-structure-implementation/
 
@@ -23,21 +25,24 @@ node *root = NULL;
 unsigned int size(node *root);
 void insert(char word[]);
 int unload(node *root);
-int load(FILE *fp);
+int load(const char *dictionary);
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
+    if (argc != 2 && argc != 3)
     {
-        fprintf(stderr, "Program supplied with more or less than 2 arguments\n");
+        printf("Usage: ./program [dictionary] text");
         return 1;
     }
 
-    FILE *fp = fopen(argv[1], "r");
+    char *dictionary = (argc == 3) ? argv[1] : DICTIONARY;
+
+    char *text = (argc == 3) ? argv[2] : argv[1];
+    FILE *fp = fopen(text, "r");
     if (fp == NULL)
     {
         fclose(fp);
-        printf("Could not locate %s\n", argv[1]);
+        printf("Could not locate %s\n", text);
         return 2;
     }
 
@@ -54,7 +59,7 @@ int main(int argc, char *argv[])
     }
     root -> prev_char = NULL;
 
-    load(fp);
+    load(dictionary);
     printf("%i words loaded\n", size(root));
     unload(root);
     printf("%i\n", size(root));
@@ -141,12 +146,19 @@ int unload(node *root)
     return 1;
 }
 
-int load(FILE *fp)
+int load(const char *dictionary)
 {
+    FILE *dicptr = fopen(dictionary, "r");
+    if (dicptr == NULL)
+    {
+        fprintf(stderr, "Could not load %s\n", dictionary);
+        return 0;
+    }
+
     int curWordSize = 0;
     char word[LENGTH];
 
-    char ch = fgetc(fp);
+    char ch = fgetc(dicptr);
     while (ch != EOF)
     {
         //printf("%i / %c\n", ch, ch);
@@ -169,10 +181,10 @@ int load(FILE *fp)
             curWordSize++;
         }
 
-        ch = fgetc(fp);
+        ch = fgetc(dicptr);
     }
 
-    if (feof(fp) != 0)
+    if (feof(dicptr) != 0)
     {
         return 1;
     } else

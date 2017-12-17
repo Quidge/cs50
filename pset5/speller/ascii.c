@@ -2,32 +2,15 @@
 
 int main()
 {
-    /*char *str = "string's";
+   const char *str1 = "hello";
+   char word_i = *str1;
 
-    int c = 0;
-    while (str[c] != '\0')
-    {
-        printf("dec: %i, hex: %x\n", str[c], str[c]);
-        if (str[c] == 39)
-        {
-            printf("true!\n");
-        }
-        c++;
-    }*/
+   while (word_i != '\0')
+   {
+       printf("%c", word_i);
+       //word_i = *((&word_i)++);
+       word_i = &word_i + 1;
+   }
+   printf("\n");
 
-    char str[] = "hello";
-    str[0] = 'N';
-    printf("%s\n", str);
-
-    char *strB = "hello";
-    while (*strB != '\0')
-    {
-        if (*strB == 'l')
-        {
-            *strB = 'k';
-        }
-        strB++;
-        printf("%c", *strB);
-    }
-    printf("\ndone\n");
 }

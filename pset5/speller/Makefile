@@ -25,7 +25,7 @@ OBJS = $(SRCS:.c=.o)
 $(EXE): $(OBJS) $(HDRS) Makefile
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS)
 
-# dependencies 
+# dependencies
 $(OBJS): $(HDRS) Makefile
 
 # housekeeping
