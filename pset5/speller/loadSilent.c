@@ -18,10 +18,12 @@ typedef struct node
 }
 node;
 
+node *root = NULL;
+
 unsigned int size(node *root);
-void insert(char word[], node *root);
+void insert(char word[]);
 int unload(node *root);
-int load(FILE *fp, node *root);
+int load(FILE *fp);
 
 int main(int argc, char *argv[])
 {
@@ -40,24 +42,19 @@ int main(int argc, char *argv[])
     }
 
     // setup root node
-    node *root = malloc(sizeof(node));
+    root = malloc(sizeof(node));
+    if (root == NULL) {
+        //crash out. everything depends on root being valid
+        fprintf(stderr, "It appears root is NULL");
+        return 2;
+    }
     for (int i = 0; i < CHARSETSIZE; i++)
     {
         root -> next_char[i] = NULL;
     }
     root -> prev_char = NULL;
 
-    /*char word[] = "abra's";
-    char word2[] = "elephant";
-    insert(word, root);
-    insert(word2, root);
-    printf("all words loaded\n");
-
-    printf("%i\n", size(root));
-    unload(root);
-    printf("%i\n", size(root));*/
-
-    load(fp, root);
+    load(fp);
     printf("%i words loaded\n", size(root));
     unload(root);
     printf("%i\n", size(root));
@@ -65,8 +62,13 @@ int main(int argc, char *argv[])
     free(root);
 }
 
-void insert(char word[], node *root)
+void insert(char word[])
 {
+    if (root == NULL)
+    {
+        fprintf(stderr, "root node is NULL");
+        return;
+    }
     node *head = root;
     char *c = word;
 
@@ -77,7 +79,7 @@ void insert(char word[], node *root)
         {
             // left bracket comes immediately after z, and - 'a' will
             // be == 26
-            *c = 0x7B;
+            *c = '{';
         }
         if (head -> next_char[*c - 'a'] == NULL)
         {
@@ -139,7 +141,7 @@ int unload(node *root)
     return 1;
 }
 
-int load(FILE *fp, node *root)
+int load(FILE *fp)
 {
     int curWordSize = 0;
     char word[LENGTH];
@@ -147,13 +149,13 @@ int load(FILE *fp, node *root)
     char ch = fgetc(fp);
     while (ch != EOF)
     {
-        printf("%i / %c\n", ch, ch);
+        //printf("%i / %c\n", ch, ch);
         if (ch == '\n')
         {
-            printf("newline!\n");
+            //printf("newline!\n");
             curWordSize++;
             word[curWordSize] = '\0';
-            insert(word, root);
+            insert(word);
             printf("%s\n", word);
             for (int i = 0; i < curWordSize + 1; i++)
             {
@@ -170,7 +172,7 @@ int load(FILE *fp, node *root)
         ch = fgetc(fp);
     }
 
-    if (feof(fp) != 1)
+    if (feof(fp) != 0)
     {
         return 1;
     } else
