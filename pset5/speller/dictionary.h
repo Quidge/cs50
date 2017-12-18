@@ -26,6 +26,8 @@ typedef struct node
 }
 node;
 
+void crawl(node *head, char prefix[LENGTH], int size);
+
 /**
  * Returns true if word is in dictionary else false.
  */

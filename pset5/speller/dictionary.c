@@ -22,57 +22,36 @@ bool check(const char *word)
         return false;
     }
 
-    /*// build out new word that is lowercase and has { instead of '
-    char wordArray[LENGTH];
-
-    int index = 0;
-    char c = word;
-    while (*c != '\0')
-    {
-        if (*c == 39)
-        {
-            *c = 123;
-        }
-        wordArray[index] = *c;
-        index++;
-        c++;
-    }
-    wordArray[index + 1] = '\0';*/
-
     node *trav = root;
 
-    // because param is a const, i can't change it to do lowercase or
-    // deal with apostrophes. word_i keeps track of the REAL chracter/word position
-    char word_i = *word;
-    char c = *word_i;
-    while (c != '\0')
-    {
-        // convert it to lower case
-        c = tolower(c);
+    const char *c = word;
 
-        // change any apostrophes to left bracket {
-        if (c == 39)
+    while (*c != '\0')
+    {
+        //printf("constant char c: %c\n", *c);
+        char curChar = tolower(*c);
+        //printf("curchar: %c\n", curChar);
+        if (curChar == '\'')
         {
-            c = 123;
+            curChar = '{';
         }
-        if (trav -> next_char[c - 'a'] == NULL)
+        if (trav -> next_char[curChar - 'a'] == NULL)
         {
+            //printf("it's happening; curChar is: %c : ", curChar);
             return false;
         }
-        trav = trav -> next_char[c - 'a'];
-        word_i++;
-        c = *word_i;
-    }
+        if (trav -> end_string == 1)
+        {
+            // we ran out of letters, so we're at the end of the word.
+            // if:
+            //  1) we're at the end of the word
+            //  2) trav is actually at the correct node (...it should be)
+            //  3) end_string == 1, signifying this was originally loaded into the dict as an actual word
 
-    if (trav -> end_string == 1)
-    {
-        // we ran out of letters, so we're at the end of the word.
-        // if:
-        //  1) we're at the end of the word
-        //  2) trav is actually at the correct node (...it should be)
-        //  3) end_string == 1, signifying this was originally loaded into the dict as an actual word
-
-        return true;
+            return true;
+        }
+        trav = trav -> next_char[curChar - 'a'];
+        c++;
     }
 
     return false;
@@ -100,22 +79,21 @@ bool load(const char *dictionary)
 
     if (root == NULL)
     {
-        printf("fuck you\n");
+        printf("crash\n");
     }
 
     int curWordSize = 0;
-    char word[LENGTH];
+    // setup word array with all null terminator chars
+    char word[LENGTH] = {0};
 
     char ch = fgetc(dicptr);
     while (ch != EOF)
     {
-        //printf("%i / %c\n", ch, ch);
         if (ch == '\n')
         {
-            //printf("newline!\n");
-            curWordSize++;
-            word[curWordSize] = '\0';
+            //word[curWordSize] = '\0';
 
+            //printf("%s\n", word);
             int attempt = insert(word);
 
             if (attempt != 0)
@@ -124,8 +102,8 @@ bool load(const char *dictionary)
                 return false;
             }
 
-            printf("%s\n", word);
-            for (int i = 0; i < curWordSize + 1; i++)
+            // the word has been inserted, so reset the buffer
+            for (int i = 0; i < LENGTH; i++)
             {
                 word[i] = 0;
             }
@@ -139,6 +117,10 @@ bool load(const char *dictionary)
 
         ch = fgetc(dicptr);
     }
+
+    char startstr[LENGTH] = {0};
+
+    crawl(root, startstr, 0);
 
     if (feof(dicptr) != 0)
     {
@@ -160,18 +142,31 @@ int insert(char word[])
         return 1;
     }
     node *head = root;
-    char *c = word;
+    //char *c = word;
+    int c = 0;
 
-    while (*c != '\0')
+    /*for (int i = 0; i < LENGTH; i++)
+    {
+        printf("%c", word[i]);
+    }
+    printf(" ");
+
+    for (int i = 0; i < LENGTH; i++)
+    {
+        printf("%i ", word[i]);
+    }
+    printf("\n");*/
+
+    while (word[c] != '\0')
     {
 
-        if (*c == 39)
+        if (word[c] == 39)
         {
             // left bracket comes immediately after z, and - 'a' will
             // be == 26
-            *c = '{';
+            word[c] = '{';
         }
-        if (head -> next_char[*c - 'a'] == NULL)
+        if (head -> next_char[word[c] - 'a'] == NULL)
         {
             // child doesn't exist, so setup new child
             node *child = malloc(sizeof(node));
@@ -183,12 +178,12 @@ int insert(char word[])
             }
 
             // child becomes new head
-            head -> next_char[*c - 'a'] = child;
+            head -> next_char[word[c] - 'a'] = child;
             head = child;
         }
         else
         {
-            head = head -> next_char[*c - 'a'];
+            head = head -> next_char[word[c] - 'a'];
         }
         c++;
     }
@@ -197,13 +192,96 @@ int insert(char word[])
     return 0;
 }
 
+/*void crawl(void)
+{
+    printf("inserted: \'");
+
+    int trav = 0;
+    node *tHead = root;
+
+    while (word[trav] != '\0')
+    {
+        if (tHead -> next_char[word[trav] - 'a'])
+        {
+            printf("!%c", word[trav]);
+            tHead = tHead -> next_char[word[trav] - 'a'];
+        } else {
+            printf("=!%c", word[trav]);
+        }
+
+        if (tHead -> end_string == 1)
+        {
+            printf("[x]");
+        }
+        trav++;
+    }
+    printf("'\n");
+}*/
+
+void crawl(node* head, char pre[LENGTH], int size)
+{
+    node *trav = head;
+
+    if (trav -> end_string == 1)
+    {
+        printf("%s\n", pre);
+    }
+    for (int i = 0; i < CHARSETSIZE; i++)
+    {
+        if (head -> next_char[i] != NULL)
+        {
+            pre[size] = i + 97;
+            size++;
+            trav = head -> next_char[i];
+
+            // jesus
+            crawl(trav, pre, size);
+        }
+    }
+}
+
+unsigned int sizeRecursive(node *head)
+{
+    unsigned int count = 0;
+    node *travel = head;
+
+    if (travel -> end_string == 1)
+    {
+        count++;
+    }
+
+    for (int i = 0; i < CHARSETSIZE; i++)
+    {
+        if (travel -> next_char[i] != NULL)
+        {
+            count += sizeRecursive(travel -> next_char[i]);
+        }
+    }
+    return count;
+}
+
 /**
  * Returns number of words in dictionary if loaded else 0 if not yet loaded.
  */
 unsigned int size(void)
 {
-    // TODO
-    return 0;
+    return sizeRecursive(root);
+}
+
+int unloadRecursive(node *head)
+{
+    node *traveler = head;
+
+    for (int i = 0; i < CHARSETSIZE; i++)
+    {
+        if (traveler -> next_char[i] != NULL)
+        {
+            unloadRecursive(traveler -> next_char[i]);
+        }
+        free(traveler -> next_char[i]);
+        traveler -> next_char[i] = NULL;
+    }
+    return 1;
 }
 
 /**
@@ -211,6 +289,7 @@ unsigned int size(void)
  */
 bool unload(void)
 {
-    // TODO
-    return false;
+    unloadRecursive(root);
+    //free(root);
+    return true;
 }
