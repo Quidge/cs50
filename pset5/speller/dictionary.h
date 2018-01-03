@@ -54,3 +54,5 @@ unsigned int size(void);
 bool unload(void);
 
 #endif // DICTIONARY_H
+
+void printWords(node *head, char *prefix, int wordLen);

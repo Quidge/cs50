@@ -84,7 +84,11 @@ bool load(const char *dictionary)
 
     int curWordSize = 0;
     // setup word array with all null terminator chars
-    char word[LENGTH] = {0};
+    char word[LENGTH];
+    for (int k = 0; k < LENGTH; k++)
+    {
+        word[k] = '\0';
+    }
 
     char ch = fgetc(dicptr);
     while (ch != EOF)
@@ -118,9 +122,10 @@ bool load(const char *dictionary)
         ch = fgetc(dicptr);
     }
 
-    char startstr[LENGTH] = {0};
-
-    crawl(root, startstr, 0);
+    /*printf("\n---\n");
+    printf("printing everything loaded in to root:\n\n");
+    printf("---\n");
+    printWords(root, "", 0);*/
 
     if (feof(dicptr) != 0)
     {
@@ -192,6 +197,31 @@ int insert(char word[])
     return 0;
 }
 
+void printWords(node *head, char *prefix, int wordLen)
+{
+    node *trav = head;
+
+    if (trav -> end_string != 0)
+    {
+        printf("%s\n", prefix);
+    }
+
+    for (int i = 0; i < CHARSETSIZE; i++)
+    {
+        if (trav -> next_char[i] != NULL)
+        {
+            char nextPre[wordLen+1];
+            for (int j = 0; j < wordLen; j++)
+            {
+                nextPre[j] = prefix[j];
+            }
+            nextPre[wordLen] = i + 97;
+            nextPre[wordLen+1] = 0;
+            printWords(trav -> next_char[i], nextPre, wordLen+1);
+        }
+    }
+}
+
 /*void crawl(void)
 {
     printf("inserted: \'");
@@ -218,7 +248,7 @@ int insert(char word[])
     printf("'\n");
 }*/
 
-void crawl(node* head, char pre[LENGTH], int size)
+/*void crawl(node* head, char pre[LENGTH], int size)
 {
     node *trav = head;
 
@@ -238,7 +268,7 @@ void crawl(node* head, char pre[LENGTH], int size)
             crawl(trav, pre, size);
         }
     }
-}
+}*/
 
 unsigned int sizeRecursive(node *head)
 {
