@@ -43,7 +43,7 @@ bool check(const char *word)
         }
         if (trav -> next_char[curChar - 'a'] == NULL)
         {
-            printf("it's happening; curChar is: %c : ", curChar);
+            //printf("it's happening; curChar is: %c : ", curChar);
             return false;
         }
         trav = trav -> next_char[curChar - 'a'];
@@ -72,7 +72,7 @@ bool check(const char *word)
         return true;
     } else
     {
-        printf("not in dict, must be substring\n");
+        //printf("not in dict, must be substring\n");
         return false;
     }
 }
@@ -104,8 +104,8 @@ bool load(const char *dictionary)
 
     int curWordSize = 0;
     // setup word array with all null terminator chars
-    char word[LENGTH];
-    for (int k = 0; k < LENGTH; k++)
+    char word[LENGTH+1];
+    for (int k = 0; k < LENGTH+1; k++)
     {
         word[k] = '\0';
     }
@@ -142,16 +142,13 @@ bool load(const char *dictionary)
         ch = fgetc(dicptr);
     }
 
-    /*printf("\n---\n");
-    printf("printing all substrings loaded in to root:\n\n");
-    printf("---\n");
-    printWords(root, "", 0);*/
-
     if (feof(dicptr) != 0)
     {
+        fclose(dicptr);
         return true;
     } else
     {
+        fclose(dicptr);
         return false;
     }
 }
@@ -169,18 +166,6 @@ int insert(char word[])
     node *head = root;
     //char *c = word;
     int c = 0;
-
-    /*for (int i = 0; i < LENGTH; i++)
-    {
-        printf("%c", word[i]);
-    }
-    printf(" ");
-
-    for (int i = 0; i < LENGTH; i++)
-    {
-        printf("%i ", word[i]);
-    }
-    printf("\n");*/
 
     while (word[c] != '\0')
     {
@@ -248,18 +233,18 @@ void printWords(node *head, char *prefix, int wordLen)
 unsigned int sizeRecursive(node *head)
 {
     unsigned int count = 0;
-    node *travel = head;
+    //node *travel = head;
 
-    if (travel -> end_string == 1)
+    if (head -> end_string == 1)
     {
         count++;
     }
 
     for (int i = 0; i < CHARSETSIZE; i++)
     {
-        if (travel -> next_char[i] != NULL)
+        if (head -> next_char[i] != NULL)
         {
-            count += sizeRecursive(travel -> next_char[i]);
+            count += sizeRecursive(head -> next_char[i]);
         }
     }
     return count;
@@ -295,6 +280,6 @@ int unloadRecursive(node *head)
 bool unload(void)
 {
     unloadRecursive(root);
-    //free(root);
+    free(root);
     return true;
 }
