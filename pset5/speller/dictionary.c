@@ -26,6 +26,12 @@ bool check(const char *word)
 
     const char *c = word;
 
+    /* This while loop attempts to get to the ending trie node for
+    * the word.
+    * If it cannot (next 'letter' node for the word would be NULL),
+    * then the word does not exist in the trie.
+    */
+
     while (*c != '\0')
     {
         //printf("constant char c: %c\n", *c);
@@ -37,24 +43,38 @@ bool check(const char *word)
         }
         if (trav -> next_char[curChar - 'a'] == NULL)
         {
-            //printf("it's happening; curChar is: %c : ", curChar);
+            printf("it's happening; curChar is: %c : ", curChar);
             return false;
-        }
-        if (trav -> end_string == 1)
-        {
-            // we ran out of letters, so we're at the end of the word.
-            // if:
-            //  1) we're at the end of the word
-            //  2) trav is actually at the correct node (...it should be)
-            //  3) end_string == 1, signifying this was originally loaded into the dict as an actual word
-
-            return true;
         }
         trav = trav -> next_char[curChar - 'a'];
         c++;
     }
 
-    return false;
+    /* If we make it down here, it must mean that no node has returned
+    * NULL and that we are at node representing the last character in
+    * the word.
+    * If this current node has end_string == 1, then the word is in the
+    * trie. If end_string != 1, it means that the SUBSTRING is in the
+    * dictionary, but the word isn't, ie:
+    * if you had a trie with a single word, 'catch', and you searched
+    * for 'cat', you would have a situation where you could be at the
+    * last node for that word ('t'), yet the end_string would be != 1.
+    */
+
+    if (trav -> end_string == 1)
+    {
+        // we ran out of letters, so we're at the end of the word.
+        // if:
+        //  1) we're at the end of the word
+        //  2) trav is actually at the correct node (...it should be)
+        //  3) end_string == 1, signifying this was originally loaded into the dict as an actual word
+
+        return true;
+    } else
+    {
+        printf("not in dict, must be substring\n");
+        return false;
+    }
 }
 
 /**
@@ -123,7 +143,7 @@ bool load(const char *dictionary)
     }
 
     /*printf("\n---\n");
-    printf("printing everything loaded in to root:\n\n");
+    printf("printing all substrings loaded in to root:\n\n");
     printf("---\n");
     printWords(root, "", 0);*/
 
@@ -203,6 +223,9 @@ void printWords(node *head, char *prefix, int wordLen)
 
     if (trav -> end_string != 0)
     {
+        printf("*%s\n", prefix);
+    } else
+    {
         printf("%s\n", prefix);
     }
 
@@ -221,54 +244,6 @@ void printWords(node *head, char *prefix, int wordLen)
         }
     }
 }
-
-/*void crawl(void)
-{
-    printf("inserted: \'");
-
-    int trav = 0;
-    node *tHead = root;
-
-    while (word[trav] != '\0')
-    {
-        if (tHead -> next_char[word[trav] - 'a'])
-        {
-            printf("!%c", word[trav]);
-            tHead = tHead -> next_char[word[trav] - 'a'];
-        } else {
-            printf("=!%c", word[trav]);
-        }
-
-        if (tHead -> end_string == 1)
-        {
-            printf("[x]");
-        }
-        trav++;
-    }
-    printf("'\n");
-}*/
-
-/*void crawl(node* head, char pre[LENGTH], int size)
-{
-    node *trav = head;
-
-    if (trav -> end_string == 1)
-    {
-        printf("%s\n", pre);
-    }
-    for (int i = 0; i < CHARSETSIZE; i++)
-    {
-        if (head -> next_char[i] != NULL)
-        {
-            pre[size] = i + 97;
-            size++;
-            trav = head -> next_char[i];
-
-            // jesus
-            crawl(trav, pre, size);
-        }
-    }
-}*/
 
 unsigned int sizeRecursive(node *head)
 {
