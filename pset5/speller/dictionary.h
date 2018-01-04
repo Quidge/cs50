@@ -26,8 +26,6 @@ typedef struct node
 }
 node;
 
-void crawl(node *head, char prefix[LENGTH], int size);
-
 /**
  * Returns true if word is in dictionary else false.
  */
@@ -53,6 +51,10 @@ unsigned int size(void);
  */
 bool unload(void);
 
-#endif // DICTIONARY_H
+/**
+ * Can crawl through a trie struct and print all words found.
+ */
 
-void printWords(node *head, char *prefix, int wordLen);
+//void printWords(node *head, char *prefix, int wordLen);
+
+#endif // DICTIONARY_H

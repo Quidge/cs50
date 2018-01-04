@@ -9,6 +9,7 @@
 
 #include "dictionary.h"
 
+// initial root node; needs to be global
 node *root = NULL;
 
 /**
@@ -22,11 +23,13 @@ bool check(const char *word)
         return false;
     }
 
+    // this is the temp node that will change as the algo
+    // moves through the trie
     node *trav = root;
 
     const char *c = word;
 
-    /* This while loop attempts to get to the ending trie node for
+    /** This while loop attempts to get to the ending trie node for
     * the word.
     * If it cannot (next 'letter' node for the word would be NULL),
     * then the word does not exist in the trie.
@@ -34,23 +37,23 @@ bool check(const char *word)
 
     while (*c != '\0')
     {
-        //printf("constant char c: %c\n", *c);
+        // Apostrophes are switched to left brackets so that
+        // the ascii code math plays nice. Left bracket comes after
+        // lowercase z.
         char curChar = tolower(*c);
-        //printf("curchar: %c\n", curChar);
         if (curChar == '\'')
         {
             curChar = '{';
         }
         if (trav -> next_char[curChar - 'a'] == NULL)
         {
-            //printf("it's happening; curChar is: %c : ", curChar);
             return false;
         }
         trav = trav -> next_char[curChar - 'a'];
         c++;
     }
 
-    /* If we make it down here, it must mean that no node has returned
+    /** If we make it down here, it must mean that no node has returned
     * NULL and that we are at node representing the last character in
     * the word.
     * If this current node has end_string == 1, then the word is in the
@@ -72,7 +75,6 @@ bool check(const char *word)
         return true;
     } else
     {
-        //printf("not in dict, must be substring\n");
         return false;
     }
 }
@@ -89,7 +91,7 @@ bool load(const char *dictionary)
         return false;
     }
 
-    // setup root node
+    // initialize root node and attributes
     root = malloc(sizeof(node));
     for (int i = 0; i < CHARSETSIZE; i++)
     {
@@ -203,7 +205,7 @@ int insert(char word[])
     return 0;
 }
 
-void printWords(node *head, char *prefix, int wordLen)
+/*void printWords(node *head, char *prefix, int wordLen)
 {
     node *trav = head;
 
@@ -229,7 +231,7 @@ void printWords(node *head, char *prefix, int wordLen)
             printWords(trav -> next_char[i], nextPre, wordLen+1);
         }
     }
-}
+}*/
 
 unsigned int sizeRecursive(node *head)
 {
