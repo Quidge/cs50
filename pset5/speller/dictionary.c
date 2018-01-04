@@ -96,6 +96,7 @@ bool load(const char *dictionary)
         root -> next_char[i] = NULL;
     }
     root -> prev_char = NULL;
+    root -> end_string = 0;
 
     if (root == NULL)
     {
@@ -233,7 +234,6 @@ void printWords(node *head, char *prefix, int wordLen)
 unsigned int sizeRecursive(node *head)
 {
     unsigned int count = 0;
-    //node *travel = head;
 
     if (head -> end_string == 1)
     {
