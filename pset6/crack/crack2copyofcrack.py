@@ -1,4 +1,4 @@
-from sys import argv, exit
+from sys import argv
 from crypt import crypt
 
 if len(argv) != 2:

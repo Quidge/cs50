@@ -1,43 +1,63 @@
-from cs50 import get_string
 from sys import argv
 from crypt import crypt
 
-def main():
-    if (len(argv) != 2):
-        print("Wrong # of args")
-        return 1
+if len(argv) != 2:
+    print("Usage: python crack.py [HASH]")
 
-    chSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    chSet2 = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    chSet3 = "rofl "
+hashval = argv[1]
 
-    '''for ch0 in chSet:
-        for ch1 in chSet2:
-            for ch2 in chSet2:
-                for ch3 in chSet2:
-                        string = f"{ch0}{ch1}{ch2}{ch3}"
-                        #print(string)
-                        print(crypt(string, argv[1]))
-                        if crypt(string, argv[1]) == argv[1]:
-                            print("what")
-                            return 5
-    '''
-    print(crack(argv[1], chSet))
+chset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+setrange = 52
 
-def crack(hashval, chSet):
-    #withspace = " " + chSet
-    chSet = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+attempt = "     " # 5 whitespace chars
 
+c1 = 0
+c2 = 0
+c3 = 0
+c4 = 0
+c5 = 0
 
-    for ch0 in chSet:
-        for ch1 in chSet:
-            for ch2 in chSet:
-                for ch3 in chSet:
-                    for ch4 in chSet:
-                        #attempt = f"{ch0}{ch1}{ch2}{ch3}{ch4}".rstrip()
-                        attempt = f"{ch4}{ch3}{ch2}{ch1}"
-                        if crypt(attempt, argv[1]) == argv[1]:
-                            return attempt
+'''
+The dance here isn't intuitive. The idea is that you'll try
+'a _ _ _ _' through 'z _ _ _ _', but then it continues to
+'a a _ _ _ _' through 'z a _ _ _', then 'a b _ _ _' through
+'z b _ _ _', etc.
+'''
 
-if __name__ == "__main__":
-    main()
+while crypt(attempt.rstrip(), hashval) != hashval:
+    if c1 < setrange:
+        attempt = chset[c1]+attempt[1]+attempt[2]+attempt[3]+attempt[4]
+        #attempt = f"{chset[c1]}"
+        #attempt[0] = chset[c1]
+        c1 += 1
+    elif c2 < setrange:
+        c1 = 0
+        attempt = attempt[0]+chset[c2]+attempt[2]+attempt[3]+attempt[4]
+        #attempt = f"{chset[c1]}{chset[c2]}"
+        #attempt[1] = chset[c2]
+        c2 += 1
+    elif c3 < setrange:
+        c1 = 0
+        c2 = 0
+        attempt = attempt[0]+attempt[1]+chset[c3]+attempt[3]+attempt[4]
+        #attempt = f"{chset[c1]}{chset[c2]}{chset[c3]}"
+        #attempt[2] = chset[c3]
+        c3 += 1
+    elif c4 < setrange:
+        c1 = 0
+        c2 = 0
+        c3 = 0
+        attempt = attempt[0]+attempt[1]+attempt[2]+chset[c4]+attempt[4]
+        #attempt = f"{chset[c1]}{chset[c2]}{chset[c3]}{chset[c4]}"
+        #attempt[3] = chset[c4]
+        c4 += 1
+    elif c5 < setrange:
+        c1 = 0
+        c2 = 0
+        c3 = 0
+        c4 = 0
+        attempt = attempt[0]+attempt[1]+attempt[2]+attempt[3]+chset[c5]
+        c5 += 1
+    #print(attempt)
+
+print(attempt.rstrip())
