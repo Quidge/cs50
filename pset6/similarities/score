@@ -29,6 +29,7 @@ def main():
     # Compare files
     d = distances(file1, file2)
     print(d[len(file1)][len(file2)][0])
+    #print(d)
 
 
 if __name__ == "__main__":
