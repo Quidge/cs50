@@ -37,13 +37,22 @@ def score():
 
     # Score files
     matrix = distances(s1, s2)
+    ''''print()
+    print()
+    print(matrix)
+    print()
+    print()'''
 
     # Extract operations from table
     operations = []
+    print(f"matrix size: layer1={len(matrix)}, layer2={len(matrix[0])}")
     i, j = len(s1), len(s2)
     while True:
+        print(f"i: {i}, j: {j}")
         _, operation = matrix[i][j]
+        print(operation)
         if not operation:
+            print("WHAT IS THIS")
             break
         if operation == Operation.INSERTED:
             j -= 1
@@ -54,6 +63,8 @@ def score():
             j -= 1
         operations.append(operation)
     operations.reverse()
+    print(operations)
+    print(len(operations))
 
     # Maintain list of intermediate strings, operation, and descriptions
     transitions = [(s1, None, None)]

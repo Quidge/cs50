@@ -11,6 +11,13 @@ class Operation(Enum):
     def __str__(self):
         return str(self.name.lower())
 
+def main():
+    thing = distances("gattica", "prison")
+    for y in thing:
+        for x in y:
+            print(f"| {x[0]} | ", end="")
+        print()
+
 def distances(a, b):
     """Calculate edit distance from a to b"""
 
@@ -25,12 +32,12 @@ def distances(a, b):
     # initialize right side border with edge case values
     cost = 0
     for i in range(len(a), -1, -1):
-        matrix[i][len(b)] = (cost, None)
+        matrix[i][len(b)] = (cost, Operation.SUBSTITUTED)
         cost += 2
 
     cost = 0
     for i in range(len(b), -1, -1):
-        matrix[len(a)][i] = (cost, None)
+        matrix[len(a)][i] = (cost, Operation.SUBSTITUTED)
         cost += 2
 
     # begin building edit distances
@@ -76,34 +83,7 @@ def distances(a, b):
             matrix[y][x] = sorted(options, key=lambda option: option[0])[0]
             #cost = min([matrix[y+1][x+1][0] + swapcost, matrix[y+1][x][0] + 2, matrix[y][x+1][0] + 2])
 
-    '''real_matrix = []
-    for i in range(len(b)):
-        real_matrix.append([matrix[i][j] for j in range(len(a))])
-        for j in range(len(a)):
-            real_matrix[i][j] = matrix[i][j]'''
-
-    #real_matrix = [[0 for col in range((len(b))] for row in range((len(a))]
-
-    '''real_matrix = []
-    for i in range(len(a)):
-        real_matrix.append([])
-        for j in range(len(b)):
-            real_matrix[i].append(matrix[i][j])
-    print(real_matrix)'''
-
-    '''for i in range(len(matrix)):
-        for j in range(len(matrix[i])):
-            print(f" {matrix[i][j][0]}", end="")
-        print()
-
-    print()
-
-    for i in range(len(matrix)-1):
-        real_matrix.append([])
-        for j in range(len(matrix[i])-1):
-            real_matrix[i].append(matrix[i][j])
-            print(f" {real_matrix[i][j][0]}", end="")
-        print()
-
-    return real_matrix'''
     return matrix
+
+if __name__ == "__main__":
+    main()
