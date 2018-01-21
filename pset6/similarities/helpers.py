@@ -11,7 +11,7 @@ class Operation(Enum):
     def __str__(self):
         return str(self.name.lower())
 
-def distances(a, b):
+def distances2(a, b):
     """Calculate edit distance from a to b"""
 
     # must be initialized so that access is y,x; not x,y as in most
@@ -20,22 +20,24 @@ def distances(a, b):
 
     # a string is left side; # b string is top
     # first layer is y; second layer is x
-    matrix = [[0 for col in range((len(b) + 1))] for row in range((len(a) + 1))]
+    matrix = [[('ERR', None) for col in range((len(b) + 1))] for row in range((len(a) + 1))]
 
     # initialize right side border with edge case values
     cost = 0
-    for i in range(len(a), -1, -1):
-        matrix[i][len(b)] = (cost, None)
-        cost += 2
-
+    for i in range(len(b)+1):
+        matrix[0][i] = (cost, Operation.INSERTED)
+        cost += 1
     cost = 0
-    for i in range(len(b), -1, -1):
-        matrix[len(a)][i] = (cost, None)
-        cost += 2
+    # initialize left side border with edge cases
+    for i in range(len(a)+1):
+        matrix[i][0] = (cost, Operation.DELETED)
+        cost += 1
+    # initialize top right corner
+    matrix[0][0] = (0, None)
 
     # begin building edit distances
-    for y in range(len(a)-1, -1, -1):
-        for x in range(len(b)-1, -1, -1):
+    for y in range(1, len(a)+1):
+        for x in range(1, len(b)+1):
 
             # this is the default cost of switching characters
             swapcost = 1
@@ -43,9 +45,10 @@ def distances(a, b):
             # run a conditional to check if chars are same, and change
             # cost to for this matrix element if so
             try:
-                if b[x] == a[y]:
+                if b[x-1] == a[y-1]:
                     swapcost = 0
             except Exception:
+                print(f"x: {x}, y: {y}")
                 print(f"Thrown error: {Exception}")
                 # I should NOT receive out of bounds errors here.
                 # both y and x loops should only go the length
@@ -60,9 +63,9 @@ def distances(a, b):
 
             try:
                 options = [
-                        (matrix[y+1][x+1][0] + swapcost, Operation.SUBSTITUTED),
-                        (matrix[y+1][x][0] + 2, Operation.INSERTED),
-                        (matrix[y][x+1][0] + 2, Operation.DELETED)
+                        (matrix[y-1][x-1][0] + swapcost, Operation.SUBSTITUTED),
+                        (matrix[y-1][x][0] + 1, Operation.INSERTED),
+                        (matrix[y][x-1][0] + 1, Operation.DELETED)
                     ]
             except Exception:
                 options = [("ERR", Operation.SUBSTITUTED)]
@@ -75,35 +78,4 @@ def distances(a, b):
             # in place
             matrix[y][x] = sorted(options, key=lambda option: option[0])[0]
             #cost = min([matrix[y+1][x+1][0] + swapcost, matrix[y+1][x][0] + 2, matrix[y][x+1][0] + 2])
-
-    '''real_matrix = []
-    for i in range(len(b)):
-        real_matrix.append([matrix[i][j] for j in range(len(a))])
-        for j in range(len(a)):
-            real_matrix[i][j] = matrix[i][j]'''
-
-    #real_matrix = [[0 for col in range((len(b))] for row in range((len(a))]
-
-    '''real_matrix = []
-    for i in range(len(a)):
-        real_matrix.append([])
-        for j in range(len(b)):
-            real_matrix[i].append(matrix[i][j])
-    print(real_matrix)'''
-
-    '''for i in range(len(matrix)):
-        for j in range(len(matrix[i])):
-            print(f" {matrix[i][j][0]}", end="")
-        print()
-
-    print()
-
-    for i in range(len(matrix)-1):
-        real_matrix.append([])
-        for j in range(len(matrix[i])-1):
-            real_matrix[i].append(matrix[i][j])
-            print(f" {real_matrix[i][j][0]}", end="")
-        print()
-
-    return real_matrix'''
     return matrix

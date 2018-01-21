@@ -45,8 +45,10 @@ def score():
 
     # Extract operations from table
     operations = []
+    print()
     print(f"matrix size: layer1={len(matrix)}, layer2={len(matrix[0])}")
-    i, j = len(s1), len(s2)
+    print(f"word1: {s1}, word2: {s2}")
+    i, j = len(s1)-1, len(s2)-1
     while True:
         print(f"i: {i}, j: {j}")
         _, operation = matrix[i][j]
