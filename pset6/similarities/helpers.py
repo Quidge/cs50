@@ -11,6 +11,7 @@ class Operation(Enum):
     def __str__(self):
         return str(self.name.lower())
 
+
 def distances(a, b):
     """Calculate edit distance from a to b"""
 
@@ -24,12 +25,12 @@ def distances(a, b):
 
     # initialize right side border with edge case values
     cost = 0
-    for i in range(len(b)+1):
+    for i in range(len(b) + 1):
         matrix[0][i] = (cost, Operation.INSERTED)
         cost += 1
     cost = 0
     # initialize left side border with edge cases
-    for i in range(len(a)+1):
+    for i in range(len(a) + 1):
         matrix[i][0] = (cost, Operation.DELETED)
         cost += 1
     # initialize top right corner
@@ -63,10 +64,10 @@ def distances(a, b):
 
             try:
                 options = [
-                        (matrix[y-1][x-1][0] + swapcost, Operation.SUBSTITUTED),
-                        (matrix[y-1][x][0] + 1, Operation.INSERTED),
-                        (matrix[y][x-1][0] + 1, Operation.DELETED)
-                    ]
+                    (matrix[y-1][x-1][0] + swapcost, Operation.SUBSTITUTED),
+                    (matrix[y-1][x][0] + 1, Operation.INSERTED),
+                    (matrix[y][x-1][0] + 1, Operation.DELETED)
+                ]
             except Exception:
                 options = [("ERR", Operation.SUBSTITUTED)]
                 print(f"These indices (may) be causing errors: y: {y}, x: {x}")
