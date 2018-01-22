@@ -4,6 +4,9 @@
     <div class="row border border-dark">
         <div class="col">
             {% include "matrix.html" %}
+            <!-- application.py is routing /score string1 & string2 submissions to this page with
+                return render_template("score.html", matrix=matrix, s1=s1, s2=s2, operations=transitions)
+            -->
         </div>
     </div>
     <div class="row border border-dark">

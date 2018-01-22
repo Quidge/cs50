@@ -3,7 +3,7 @@
 import sys
 
 from argparse import ArgumentParser
-from helpers import distances2
+from helpers import distances
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
         sys.exit(f"Could not read {args['FILE2']}")
 
     # Compare files
-    d = distances2(file1, file2)
+    d = distances(file1, file2)
     #print(d)
 
     '''for y in d:

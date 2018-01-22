@@ -11,7 +11,7 @@ class Operation(Enum):
     def __str__(self):
         return str(self.name.lower())
 
-def distances2(a, b):
+def distances(a, b):
     """Calculate edit distance from a to b"""
 
     # must be initialized so that access is y,x; not x,y as in most

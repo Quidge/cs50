@@ -1,1 +1,49 @@
-<!-- TODO -->
+{% extends "score.html" %}
+
+<!-- I think, matrix.html is pseudo scoped inside score.html. So it
+should have access to the key=arg pairs passed to score.html from application.py:
+    return render_template("score.html", matrix=matrix, s1=s1, s2=s2, operations=transitions)
+-->
+
+{% block body %}
+    <table class="table table-sm">
+        <thead>
+
+            <!-- Begin top string letters and top string edge case stuff -->
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                    {% for char in s2 %}
+                        <th>{{ char }}</th>
+                    {% endfor %}
+            </tr>
+            <tr>
+                <th></th>
+                <th></th>
+                <th>0</th>
+                    {% for char in s2 %}
+                        <th>{{ loop.index }}</th>
+                    {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in matrix %}
+                <tr>
+                    <!-- Begin left side header stuff (letters and edge cases) -->
+                    {% if (loop.index-2) is lessthan 0 %}
+                        <th></th>
+                    {% else %}
+                        <th>{{ s1[(loop.index-2)] }}</th>
+                    {% endif %}
+                    <th>{{ loop.index-1 }}</th>
+
+                    <!-- Begin actual table date -->
+                    {% for col in row %}
+                        <td>{{ col[0] }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
