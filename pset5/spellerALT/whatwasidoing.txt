@@ -1,0 +1,16 @@
+12/17:
+- was in the process of implementing check() inside dictionary.c
+    - stuck on the part where check is passed a const string, and i
+    can't do shit with a const string. so i tried to duplicate the const
+    parameter string, but you kinda(?) can't do that. that's what i'm
+    stuck on.
+    - ^ use this: https://stackoverflow.com/questions/18938779/how-to-copy-a-string-using-a-pointer
+
+12/18:
+- i was in the middle of building crawl() to traverse the damn tree because
+    damnit i need to visually print out what the hell is in my tree. i'm thinking,
+    1) finish that function
+    2) guarentee that my dict tree is all there
+    3) ^ determine if load/insert are working properly
+    4) fix either them or check(), now that i know which it is
+    5) jesus
