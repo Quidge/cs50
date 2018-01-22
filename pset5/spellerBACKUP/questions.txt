@@ -1,0 +1,81 @@
+0.  What is pneumonoultramicroscopicsilicovolcanoconiosis?
+A: pneumonoultramicroscopicsilicovolcanoconiosis is used in this
+dictionary as the definition for the longest word. If a word is longer
+than this, it is not an actual word and should be rejected by speller.
+Aside from that, the OED defines it as, "an artificial long word said
+to mean a lung disease caused by inhaling very fine ash and sand dust."
+
+1.  According to its man page, what does getrusage do?
+A: getrusage returns resource measures for a target, passed as an arguement.
+
+2.  Per that same man page, how many members are in a variable of type
+struct rusage?
+A: According to the man page for getrusage, there are 16 variable
+members of struct rusage.
+
+3.  Why do you think we pass before and after by reference (instead of
+by value) to calculate, even though we’re not changing their contents?
+A: Scoping. before and after are held outside the scope of getrusage,
+so the only way to set them for later use with calculate() is to
+pass by reference.
+
+4.  Explain as precisely as possible, in a paragraph or more, how main
+goes about reading words from a file. In other words, convince us that
+you indeed understand how that function’s for loop works.
+A: Lines 22-61: tl;dr, reject execution with less than 2 or 3
+arguements, initialize variables and dictionary to optional dictionary
+if provided. Initialize vars index, mispellings, words, a 'word' which
+is set as a character array of size max length (+1 to accomodate
+a terminal \0 character), and a filepointer which will be text to read
+from.
+
+Lines 71-128: The for loop initializes its incremental var to be the
+first char of the text with fgetc(). The loop continues unless this incremental
+variable becoems == to EOF. At the end of every loop, fgetc sets the
+incremental variable to the NEXT character of the text. The loop then
+proceeds into one of three conditions: is working char alphabetical OR
+equal to an apostrophe and the index is also greater than one?
+else, is it a digit? else, (and this is the meat of the loop) is the
+index currently greater than 1?
+
+I'll explain the first condition. The intent with this conditional is
+to catch all instances of alphabetical characters in the source text
+(including apostrophes, if they don't begin words). Because space and
+tab characters fails the isalpha() test. When a character passes this
+conditional, word[index] will be assigned to that character and index
+will be updated. If index is now greater than length, it is too long to
+be a word. A clever while loop skips through the remaining characters of
+the too-long-to-be-a-word word. Finally, at the end of this side
+condition when index is greater than length, index is set to 0.
+
+The second condition is designed to reject words with numbers. If the
+current for loop char is a digit, it does the clever while loop thing
+from the first condition and resets index to 0.
+
+The third condition implements the actual spellcheck, and will only
+trigger if the first two conditions are not met: so, in the case where
+the current for loop char is neither a number nor an alphabetical char
+AND when the current building word array is not empty (when index > 0).
+(Protip, this triggers when a space, punctuation, or terminal \0 is
+found.) If this condition triggers, the spellcheck check() function is
+run on the word array, rusage stats are measured and summed into the
+benchmark, the mispelled word (if it was misspelled) is printed to the
+console, the misspelled word count is incremented, and the word index
+is reset back to 0.
+
+I feel everything else doesn't warrant an explanation, and I don't
+want to write one.
+
+5.  Why do you think we used fgetc to read each word’s characters one
+at a time rather than use fscanf with a format string like "%s" to
+read whole words at a time? Put another way, what problems might arise
+by relying on fscanf alone?
+
+A: Using %s accepts non-white space characters, while the method used
+with fgetc() is able to skip character arrays that contain numbers and
+also include character arrays that do not begin with apostrophes.
+
+6.  Why do you think we declared the parameters for check and load as const (which means "constant")?
+
+A: Performance? The dictionary should never change over the duration
+of the program, and word shouldn't change for the duration of check().

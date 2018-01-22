@@ -37,7 +37,7 @@ int main(int argc, string argv[])
         else if (counters[1] < 52)
         {
             counters[0] = 0;
-            attempt[1] = charSet[counters[1]], ;
+            attempt[1] = charSet[counters[1]];
             counters[1]++;
         }
         else if (counters[2] < 52)
