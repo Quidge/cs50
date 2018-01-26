@@ -110,7 +110,31 @@ def quote():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
-    return apology("TODO")
+
+    error = None
+
+    if request.method == "POST":
+        if not request.form.get("username") or not request.form.get("password") or not request.form.get("confirmation"):
+            error = "Missing fields"
+        elif request.form.get("password") != request.form.get("confirmation"):
+            error = "Passwords do not match"
+        elif len(db.execute("SELECT * FROM users WHERE username = :username",
+                          username=request.form.get("username"))) != 1:
+                error = "Username already exists."
+        else:
+            passhash = generate_password_hash(
+                request.form.get("password"), method="plain")
+
+            string = 'jonathan'
+            db.execute("INSERT INTO users (username, hash) VALUES (?, ?)",
+                        (string, passhash))
+                        #(request.form.get("username"), passhash))
+            flash("Account created successfully")
+            session["user_id"] = db.execute("SELECT id FROM users WHERE username=?",
+                                            request.form.get("username"))
+            return redirect("/")
+    print(error)
+    return render_template("register.html", error=error)
 
 
 @app.route("/sell", methods=["GET", "POST"])
