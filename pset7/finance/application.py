@@ -1,4 +1,4 @@
-from cs50 import SQL
+import sqlite3
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -28,8 +28,11 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///finance.db")
+#db = SQL("sqlite:///finance.db")
 
+# Using sqlite3 to connect to db
+db = sqlite3.connect('finance.db')
+c = db.cursor()
 
 @app.route("/")
 @login_required
@@ -70,16 +73,22 @@ def login():
         elif not request.form.get("password"):
             return apology("must provide password", 403)
 
+        username = request.form.get("username")
+        ptpass = request.form.get("password")
+
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = :username",
-                          username=request.form.get("username"))
+        c.execute("SELECT * FROM users WHERE username=?",
+                    (username,))
+        rows = c.fetchall()
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if len(rows) != 1 or not check_password_hash(rows[0][2], ptpass):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = rows[0][0]
+
+        print(session["user_id"])
 
         # Redirect user to home page
         return redirect("/")
@@ -116,24 +125,34 @@ def register():
     if request.method == "POST":
 
         username = request.form.get("username")
-        password = request.form.get("password")
+        ptpass = request.form.get("password")
 
-        print(f"username:{username}, password:{password}", username, password)
+        print(f"username:{username}, password:{ptpass}")
 
         if not request.form.get("username") or not request.form.get("password") or not request.form.get("confirmation"):
             error = "Missing fields"
         elif request.form.get("password") != request.form.get("confirmation"):
             error = "Passwords do not match"
-        elif len(db.execute("SELECT * FROM users WHERE username=:username", username=request.form.get("username"))) > 0:
-                error = "'{username}' Username already exists.".format(username=request.form.get("username"))
+
+        # connect to db
+
+        c.execute("SELECT * FROM users WHERE username=?", (username,))
+        rows = c.fetchall()
+
+        if len(rows) > 1:
+            error = "Wha? There are {num} users with that \
+                    username".format(num=len(rows))
+        elif len(rows) > 0:
+            error = "A user with the name, '{username}', already exists.".format(username=username)
         else:
-            passhash = generate_password_hash(
-                request.form.get("password"), method="plain")
-            username = request.form.get("username")
-            db.execute("INSERT INTO users ('username', 'hash') VALUES ('username'=:username, 'password'=:password)", username=username, password=passhash)
-            flash("Account created successfully")
-            session["user_id"] = db.execute("SELECT id FROM users WHERE username=:username",
-                                            username=request.form.get("username"))
+            hashpass = generate_password_hash(ptpass, method="md5")
+            c.execute("INSERT INTO users(username, hash) VALUES (?, ?)", (username, hashpass,))
+            db.commit()
+            flash("Account created successfully!")
+            user = c.execute("SELECT id FROM users WHERE username=?",
+                            (username,))
+            row = user.fetchone()
+            session["user_id"] = row[0]
             return redirect("/")
     print(error)
     return render_template("register.html", error=error)
