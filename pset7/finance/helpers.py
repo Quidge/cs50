@@ -1,8 +1,10 @@
 import csv
 import urllib.request
+import sqlite3
 
 from flask import redirect, render_template, request, session
 from functools import wraps
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 def apology(message, code=400):
@@ -19,6 +21,19 @@ def apology(message, code=400):
         return s
     return render_template("apology.html", top=code, bottom=escape(message)), code
 
+def valid_login(username, plaintext, database):
+    '''
+    Returns true if username/password combination is in database.
+    '''
+
+    c = database.cursor()
+    c.execute("SELECT * FROM users WHERE username=?", (username,))
+    row = c.fetchone()
+
+    if check_password_hash(row[2], plaintext):
+        return True
+
+    return False
 
 def login_required(f):
     """

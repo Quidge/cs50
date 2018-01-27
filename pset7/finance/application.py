@@ -5,7 +5,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, login_required, lookup, usd
+from helpers import apology, login_required, lookup, usd, valid_login
 
 # Configure application
 app = Flask(__name__)
@@ -76,23 +76,23 @@ def login():
         username = request.form.get("username")
         ptpass = request.form.get("password")
 
-        # Query database for username
-        c.execute("SELECT * FROM users WHERE username=?",
-                    (username,))
-        rows = c.fetchall()
+        if valid_login(username, ptpass, db):
 
-        # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0][2], ptpass):
+            # Query database for user info
+            c.execute("SELECT * FROM users WHERE username=?",
+                        (username,))
+            row = c.fetchone()
+
+            # Remember which user has logged in
+            session["user_id"] = row[0]
+            session["username"] = row[1]
+
+            print(session["user_id"])
+
+            # Redirect user to home page
+            return redirect("/")
+        else:
             return apology("invalid username and/or password", 403)
-
-        # Remember which user has logged in
-        session["user_id"] = rows[0][0]
-
-        print(session["user_id"])
-
-        # Redirect user to home page
-        return redirect("/")
-
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html")
@@ -120,19 +120,31 @@ def quote():
 def register():
     """Register user"""
 
+    # knowing i'm shit at session management, i'm saying clear it with any
+    # access at all
+    # and yes, that means if if a user accesses /register.html in any way,
+    # they will need to log in again
+    session.clear()
+
     error = None
 
     if request.method == "POST":
 
-        username = request.form.get("username")
-        ptpass = request.form.get("password")
-
-        print(f"username:{username}, password:{ptpass}")
-
         if not request.form.get("username") or not request.form.get("password") or not request.form.get("confirmation"):
             error = "Missing fields"
+            flash(error)
+            return render_template("register.html", error=error)
         elif request.form.get("password") != request.form.get("confirmation"):
             error = "Passwords do not match"
+            flash(error)
+            return render_template("register.html", error=error)
+
+        # if this logic passes, all fields must be filled in and
+        # password matches confirmation
+
+        # for brevity
+        username = request.form.get("username")
+        ptpass = request.form.get("password")
 
         # connect to db
 
@@ -145,16 +157,24 @@ def register():
         elif len(rows) > 0:
             error = "A user with the name, '{username}', already exists.".format(username=username)
         else:
+            # everything passes, so create a new user:
             hashpass = generate_password_hash(ptpass, method="md5")
             c.execute("INSERT INTO users(username, hash) VALUES (?, ?)", (username, hashpass,))
             db.commit()
             flash("Account created successfully!")
-            user = c.execute("SELECT id FROM users WHERE username=?",
+
+            # set session vars to proper values
+            user = c.execute("SELECT * FROM users WHERE username=?",
                             (username,))
             row = user.fetchone()
             session["user_id"] = row[0]
+            session["username"] = username
             return redirect("/")
-    print(error)
+
+    if error is not None:
+        print(error)
+        flash(error)
+
     return render_template("register.html", error=error)
 
 
