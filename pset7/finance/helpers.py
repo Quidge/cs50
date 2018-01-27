@@ -84,7 +84,8 @@ def lookup(symbol):
         return {
             "name": row[1],
             "price": price,
-            "symbol": row[0].upper()
+            "symbol": row[0].upper(),
+            "source": "Yahoo Finance"
         }
 
     except:
@@ -117,7 +118,8 @@ def lookup(symbol):
         return {
             "name": symbol.upper(),  # for backward compatibility with Yahoo
             "price": price,
-            "symbol": symbol.upper()
+            "symbol": symbol.upper(),
+            "source": "AlphaVantage"
         }
 
     except:
