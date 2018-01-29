@@ -1,0 +1,15 @@
+{% if stock == None %}
+    <div class="col">
+        <h1 class="display-3">Can't find a damn thing.</h1>
+    </div>
+{% else %}
+    <table class="table table-lg">
+        <tr>
+            {% for _, value in stock.items() %}
+                <td>
+                    {{ value }}
+                </td>
+            {% endfor %}
+        </tr>
+    </table>
+{% endif %}

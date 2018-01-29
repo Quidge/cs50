@@ -116,7 +116,11 @@ def quote():
 
     if request.method == "POST":
         result = lookup(request.form.get("symbol"))
-        return render_template("quote.html", stock=result)
+        if result == None:
+            flash("Couldn't find that symbol, sorry!")
+            return render_template("quote.html")
+        else:
+            return render_template("quote.html", stock=result)
     else:
         return render_template("quote.html")
 
