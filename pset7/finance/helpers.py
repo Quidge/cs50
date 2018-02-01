@@ -129,3 +129,58 @@ def lookup(symbol):
 def usd(value):
     """Formats value as USD."""
     return f"${value:,.2f}"
+
+def buy_stock(user_id, symbol, price, num_shares):
+    """Creates BUY transaction in transaction table. Debits corresponding
+        amount from users cash. Assumes ONLY stock symbol and stock price are
+        accurate and will return None if other parameters fail validation.
+
+        Returns user's cash balance minus total purchase cost."""
+
+    #print("executing buy_stock('{user_id}', '{symbol}', '{price}', \
+    #    '{num_shares}'".format(user_id=user_id, symbol=symbol, price=price, num_shares=num_shares))
+
+    db = sqlite3.connect('finance.db')
+    c = db.cursor()
+    c.execute("SELECT cash FROM users WHERE ID=?", (user_id,))
+    user_cash = c.fetchone()
+    print(user_cash)
+
+    # validate user is real
+    try:
+        assert user_cash != None
+    except AssertionError:
+        print("User '{user_id}' does not exist")
+        return None
+
+    try:
+        user_cash = user_cash[0]
+    except IndexError:
+        print ("Can't find index 0 of user_cash")
+        return None
+
+    try:
+        assert num_shares > 0
+    except AssertionError:
+        print("Number of shares is invalid")
+        return None
+
+    # validate user has enough cash on hand to make purchase
+    try:
+        assert user_cash >= num_shares * price
+        c.execute("UPDATE users SET cash=? WHERE id=?",
+                    (user_cash - (price * num_shares), user_id,))
+        c.execute("INSERT INTO transactions ( \
+                                            stock_symbol, num_shares, \
+                                            share_price, user_id, \
+                                            operation) \
+                                VALUES (?, ?, ?, ?, ?)",
+                                (symbol, num_shares, price, user_id, 'BUY',))
+        db.commit()
+    except AssertionError:
+        print("Insufficient user funds.")
+
+    # query new cash amount for user and return that new balance
+    c.execute("SELECT cash FROM users WHERE ID=?", (user_id,))
+    return c.fetchone()[0]
+

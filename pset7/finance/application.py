@@ -5,7 +5,7 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, login_required, lookup, usd, valid_login
+from helpers import apology, login_required, lookup, usd, valid_login, buy_stock
 
 # Configure application
 app = Flask(__name__)
@@ -44,9 +44,38 @@ def index():
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
 def buy():
-    """Buy shares of stock"""
-    return apology("TODO")
 
+    if request.method == "POST":
+        symbol = request.form.get("symbol")
+        num_shares = request.form.get("num_shares")
+        stock_data = lookup(symbol)
+
+        try:
+            assert stock_data != None
+            print(stock_data)
+        except AssertionError:
+            flash("Stock '{symbol}' doesn't seem to exist".format(symbol=symbol))
+            return render_template("buy.html")
+
+        try:
+            num_shares = int(num_shares)
+        except ValueError as e:
+            print(e)
+            print("Can't convert num_shares to int")
+            flash("Use the fields properly dumbass.")
+            return render_template("buy.html")
+
+        try:
+            result = buy_stock(session["user_id"], stock_data["symbol"],
+                                stock_data["price"], num_shares)
+            print(result)
+            assert result != None
+        except AssertionError:
+            flash("Something failed.")
+
+        flash("Purchase successful! New cash balance: {result}".format(result=result))
+
+    return render_template("buy.html")
 
 @app.route("/history")
 @login_required
