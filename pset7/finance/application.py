@@ -5,7 +5,8 @@ from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, login_required, lookup, usd, valid_login, buy_stock
+#from helpers import apology, login_required, lookup, usd, valid_login, buy_stock, sell_stock
+from helpers import *
 
 # Configure application
 app = Flask(__name__)
@@ -74,7 +75,7 @@ def index():
         return render_template("index.html", portfolio=rows_w_share_prices,
                                 cash=cash, portfolio_sum=portfolio_sum)
     else:
-        return render_template("index.html", portfolio=None, cash=cash, portfolio_sum=0)
+        return render_template("index.html", portfolio=None, cash=cash, portfolio_sum=0.00)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -255,7 +256,41 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+
+        symbol = request.form.get("symbol")
+        num_shares = request.form.get("num_shares")
+
+        try:
+            assert symbol != None and num_shares != None, "Field(s) missing dumbass"
+            num_shares = int(num_shares)
+            assert num_shares > 0, "Shares must be a positive integer"
+        except (TypeError, AssertionError,) as e:
+            flash("{type}: {e}".format(type=type(e).__name__, e=e))
+            return render_template('sell.html')
+
+        stock_data = lookup(symbol)
+
+        try:
+            assert stock_data["price"]
+        except AssertionError as e:
+            flash("{type}: {e}".format(type=type(e).__name__, e=e))
+            return render_template('sell.html')
+
+        result = sell_stock(session["user_id"], symbol,
+                            stock_data["price"], num_shares)
+
+        if result == -1:
+            flash("You have never purchased {sym} before".format(sym=sym))
+        elif result == 0:
+            flash("You don't own enough shares to make that quantity sale!")
+        else:
+            flash("You sold {qty} shares of {sym}. Your balance is {cash}".format(
+                    qty=num_shares, sym=symbol, cash=result))
+        return render_template("sell.html")
+
+    else:
+        return render_template("sell.html")
 
 
 def errorhandler(e):

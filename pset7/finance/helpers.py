@@ -129,15 +129,67 @@ def usd(value):
     """Formats value as USD."""
     return f"${value:,.2f}"
 
+def sell_stock(user_id, symbol, share_price, num_shares):
+    """Creates SELL transaction in transaction table. Credits corresponding
+        amount to users cash. Assumes ONLY stock symbol, stock price, and user_id
+        are accurate and will return None if other parameters fail validation.
+
+        Return -1 if user does not have stock in portfolio.
+        Return 0 if user does not have enough shares to complete desired sale.
+        Returns user's cash balance after sale transaction."""
+
+    assert num_shares > 0, "Number of shares is 0 or negative."
+
+    db = sqlite3.connect('finance.db')
+    c = db.cursor()
+
+    # gather records of any BUY transaction made by user
+    # return -1 if none found - user has never purchased $SYMBOL
+    c.execute("SELECT COUNT(num_shares) \
+                FROM transactions \
+                WHERE user_id=? AND stock_symbol=? AND operation=?",
+                (user_id, symbol, 'BUY',))
+    try:
+        shares_bought = c.fetchone()[0]
+    except IndexError:
+        return -1
+
+    c.execute("SELECT COUNT(num_shares) \
+                FROM transactions \
+                WHERE user_id=? AND stock_symbol=? AND operation=?",
+                (user_id, symbol, 'SELL',))
+    try:
+        shares_sold = c.fetchone()[0]
+    except IndexError:
+        shares_sold = 0
+
+    if num_shares >= shares_bought - shares_sold:
+        try:
+            c.execute("INSERT INTO transactions (stock_symbol, num_shares, \
+                                                share_price, operation, \
+                                                user_id) \
+                        VALUES (?, ?, ?, ?, ?)",
+                        (symbol, num_shares, share_price, 'SELL', user_id,))
+            c.execute("SELECT cash FROM users WHERE id=?", (user_id,))
+            pre_sale_cash = c.fetchone()[0]
+            sale_gross = num_shares * share_price;
+            post_sale_cash = pre_sale_cash + sale_gross
+            c.execute("UPDATE users SET cash=? WHERE id=?", (post_sale_cash, user_id,))
+            db.commit() # i don't understand when/when not to commit
+            return post_sale_cash
+        except sqlite3.OperationalError as e:
+            print(e)
+            raise
+    else:
+        return 0
+
+
 def buy_stock(user_id, symbol, share_price, num_shares):
     """Creates BUY transaction in transaction table. Debits corresponding
         amount from users cash. Assumes ONLY stock symbol and stock price are
         accurate and will return None if other parameters fail validation.
 
         Returns user's cash balance minus total purchase cost."""
-
-    #print("executing buy_stock('{user_id}', '{symbol}', '{price}', \
-    #    '{num_shares}'".format(user_id=user_id, symbol=symbol, price=price, num_shares=num_shares))
 
     db = sqlite3.connect('finance.db')
     c = db.cursor()
