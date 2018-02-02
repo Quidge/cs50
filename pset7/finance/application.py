@@ -37,6 +37,30 @@ c = db.cursor()
 @app.route("/")
 @login_required
 def index():
+
+    try:
+        c.execute("SELECT SUM(num_shares), stock_symbol \
+                    FROM transactions \
+                    WHERE user_id=? AND operation='BUY' \
+                    GROUP BY stock_symbol", (session["user_id"],)
+                    )
+    except (sqlite3.ProgrammingError, sqlite3.OperationalError) as e:
+        flash("{type}: {e}".format(type=type(e).__name__, e=e))
+        print(e)
+
+    print(c.fetchall())
+
+    portfolio_sum = 0; cash = 0
+
+    '''if rows > 0:
+
+        try:
+            rows = c.fetchall()
+            rows_w_lookup
+            portfolio_sum = row[[rows
+        return render_template("index.html", portfolio=rows, cash=cash,
+                                portfolio_sum=portolfio_sum)'''
+
     return render_template("index.html", cash=0, portfolio_sum=0)
 
 
