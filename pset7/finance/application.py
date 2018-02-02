@@ -38,6 +38,10 @@ c = db.cursor()
 @login_required
 def index():
 
+    # Consider adding a REFRESH button on page. Refresh gets new info (and is a POST request)
+    #   GET requests only show cached value
+    #   Otherwise, cache the value and only show that. Consider holding cache in DB?
+
     try:
         c.execute("SELECT SUM(num_shares), stock_symbol \
                     FROM transactions \
@@ -48,20 +52,29 @@ def index():
         flash("{type}: {e}".format(type=type(e).__name__, e=e))
         print(e)
 
-    print(c.fetchall())
+    db_rows = c.fetchall()
 
-    portfolio_sum = 0; cash = 0
+    # add current day price data to holdings queried from database
+    #   shouldin't run if user doesn't own anything
+    # THIS IS EXPENSIVE ON PAGELOAD
+    rows_w_share_prices = [[value for value in row] for row in db_rows]
+    for row in rows_w_share_prices:
+        share_price = lookup(row[1])["price"]
+        row.append(share_price)
 
-    '''if rows > 0:
+    # get cash on hand
+    c.execute("SELECT cash FROM users WHERE ID=?", (session["user_id"],))
+    cash = c.fetchone()[0]
 
-        try:
-            rows = c.fetchall()
-            rows_w_lookup
-            portfolio_sum = row[[rows
-        return render_template("index.html", portfolio=rows, cash=cash,
-                                portfolio_sum=portolfio_sum)'''
+    # render template with info, if portfolio is empty skip and give defaults
+    if len(rows_w_share_prices) > 0:
+        # sum total portfolio value
+        portfolio_sum = sum(row[0]*row[2] for row in rows_w_share_prices)
 
-    return render_template("index.html", cash=0, portfolio_sum=0)
+        return render_template("index.html", portfolio=rows_w_share_prices,
+                                cash=cash, portfolio_sum=portfolio_sum)
+    else:
+        return render_template("index.html", portfolio=None, cash=cash, portfolio_sum=0)
 
 
 @app.route("/buy", methods=["GET", "POST"])
