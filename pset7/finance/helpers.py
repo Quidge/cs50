@@ -6,7 +6,6 @@ from flask import redirect, render_template, request, session
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 
-
 def apology(message, code=400):
     """Renders message as an apology to user."""
     def escape(s):
@@ -130,7 +129,7 @@ def usd(value):
     """Formats value as USD."""
     return f"${value:,.2f}"
 
-def buy_stock(user_id, symbol, price, num_shares):
+def buy_stock(user_id, symbol, share_price, num_shares):
     """Creates BUY transaction in transaction table. Debits corresponding
         amount from users cash. Assumes ONLY stock symbol and stock price are
         accurate and will return None if other parameters fail validation.
@@ -167,18 +166,18 @@ def buy_stock(user_id, symbol, price, num_shares):
 
     # validate user has enough cash on hand to make purchase
     try:
-        assert user_cash >= num_shares * price
+        assert user_cash >= num_shares * share_price
         c.execute("UPDATE users SET cash=? WHERE id=?",
-                    (user_cash - (price * num_shares), user_id,))
+                    (user_cash - (share_price * num_shares), user_id,))
         c.execute("INSERT INTO transactions ( \
                                             stock_symbol, num_shares, \
                                             share_price, user_id, \
                                             operation) \
                                 VALUES (?, ?, ?, ?, ?)",
-                                (symbol, num_shares, price, user_id, 'BUY',))
+                                (symbol, num_shares, share_price, user_id, 'BUY',))
         db.commit()
     except AssertionError:
-        print("Insufficient user funds.")
+        raise ArithmeticError("Insufficient balance for purchase.")
 
     # query new cash amount for user and return that new balance
     c.execute("SELECT cash FROM users WHERE ID=?", (user_id,))

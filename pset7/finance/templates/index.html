@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Portfolio
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-md-9">
+            <table class="table table-lg">
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Symbol</th>
+                        <th>Share Price Now</th>
+                        <th>Shares Held</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="col-md-3">
+            <p>Cash: {{ cash }}</p>
+            <p>Portfolio Value: {{ portfolio_sum }}</p>
+            <p>Total: {{ cash + portfolio_sum }}</p>
+        </div>
+    </div>
+{% endblock %}

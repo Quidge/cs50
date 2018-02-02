@@ -37,8 +37,7 @@ c = db.cursor()
 @app.route("/")
 @login_required
 def index():
-    """Show portfolio of stocks"""
-    return apology("TODO")
+    return render_template("index.html", cash=0, portfolio_sum=0)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -68,10 +67,10 @@ def buy():
         try:
             result = buy_stock(session["user_id"], stock_data["symbol"],
                                 stock_data["price"], num_shares)
-            print(result)
             assert result != None
-        except AssertionError:
-            flash("Something failed.")
+        except (AssertionError, ArithmeticError,) as e:
+            flash("{type}: {e}".format(type=type(e).__name__, e=e))
+            return render_template("buy.html")
 
         flash("Purchase successful! New cash balance: {result}".format(result=result))
 
