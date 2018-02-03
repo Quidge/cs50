@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    History
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col">
+            <div class="container">
+                <table class="table table-lg">
+                    <thead>
+                        <th>Operation</th>
+                        <th>Symbol</th>
+                        <th>Qty Shares</th>
+                        <th>Price at Time</th>
+                        <th>Timestamp</th>
+                    </thead>
+                {% if data|length == 0 %}
+                </table>
+                <div class="jumbotron">
+                    <h1 class="font-bold">Nothing here.</h1>
+                    <p class="lead">You don't appear to have any transaction history.</p>
+                </div>
+                {% else %}
+                    <tbody>
+                        {% for row in data %}
+                        <tr>
+                            {% for value in row.values() %}
+                            <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
