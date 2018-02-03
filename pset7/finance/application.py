@@ -118,7 +118,23 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+    c.execute("SELECT * FROM transactions WHERE user_id=?",
+                (session["user_id"],))
+    raw_data = c.fetchall()
+
+    data_rows = []
+
+    for row in raw_data:
+        data = {}
+        data["operation"]       = row[6]
+        data["symbol"]          = row[1]
+        data["num_shares"]      = row[3]
+        data["price_at_time"]   = usd(row[4])
+        data["timestamp"]       = row[2]
+        data_rows.append(data)
+    print(data_rows)
+
+    return render_template("history.html", data=data_rows)
 
 
 @app.route("/login", methods=["GET", "POST"])
