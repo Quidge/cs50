@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Quote
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col">
+            <form method="POST" action="/quote">
+                <div class="form-control">
+                    <input class="form-control" type="text" name="symbol" placeholder="stock symbol - ie, GOOG or IBM"/>
+                    <button class='btn' type="submit">Check price</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if stock %}
+    <div class="row">
+        <div class="col">
+            {% include 'quoted.html' %}
+        </div>
+    </div>
+    {% endif %}
+
+{% endblock %}
+
+
+

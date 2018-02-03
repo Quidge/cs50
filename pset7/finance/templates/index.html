@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+<!-- extended with this:  return render_template("index.html", portfolio=None, cash=cash, portfolio_sum=0) -->
+
+{% block title %}
+    Portfolio
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <div class="col-md-9">
+            <table class="table table-lg">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Share Price Now</th>
+                        <th>Shares Held</th>
+                    </tr>
+                </thead>
+            {% if portfolio|length == 0 %}
+            </table>
+            <div class="jumbotron">
+                <div class="container">
+                    <h1 class="font-bold">sorry mate, nothing here</h1>
+                    <p class="lead">Looks like you don't have anything in your portfolio right now. Maybe you should go buy some things?</p>
+                </div>
+            </div>
+            {% else %}
+                <tbody>
+                    {% for row in portfolio %}
+                        <tr>
+                            <td>{{ row[1] }}</td> <!-- Symbol -->
+                            <td>{{ (row[2])|usd }}</td> <!-- Shares price -->
+                            <td>{{ row[0] }}</td> <!-- Shares Held -->
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        </div>
+        <div class="col-md-3">
+            <div class="container border">
+                <form method="POST" action="/">
+                    <button class="btn" type="submit">Refresh portfolio</button>
+                    <br />
+                    <p>portfolio last updated: {{ last_refresh|default('Unavailable') }}</p>
+                </form>
+            </div>
+            <div class="container border">
+                <p>Cash Value: {{ cash|usd }}</p>
+                <p>Portfolio Value: {{ portfolio_sum|usd }}</p>
+                <p>Net worth: {{ (cash + portfolio_sum)|usd }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
