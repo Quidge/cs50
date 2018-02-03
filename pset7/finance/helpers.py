@@ -1,6 +1,7 @@
 import csv
 import urllib.request
 import sqlite3
+import pickle
 
 from flask import redirect, render_template, request, session
 from functools import wraps
@@ -234,4 +235,43 @@ def buy_stock(user_id, symbol, share_price, num_shares):
     # query new cash amount for user and return that new balance
     c.execute("SELECT cash FROM users WHERE ID=?", (user_id,))
     return c.fetchone()[0]
+
+def store_snapshot(user_id, data_table, generation_date):
+    """Stores a pickled snapshot of user portfolio to user_portfolio_snapshots.
+
+        If entry already exists in user_portfolio_snapshots for user_id, then
+        the old entry is overwritten.
+
+        Returns True if sucessful and False if unsucessful.
+        """
+
+    try:
+        assert user_id and data_table and generation_date
+    except AssertionError as e:
+        print(e)
+        return False
+
+    db = sqlite3.connect('finance.db')
+    c = db.cursor()
+    data_string = pickle.dumps(data_table)
+
+    c.execute("SELECT * FROM user_portfolio_snapshots WHERE user_id=?", (user_id,))
+
+    row = c.fetchone()
+
+    try:
+        if len(row) > 0:
+            c.execute("UPDATE user_portfolio_snapshots \
+                        SET data=?, generation_date=? \
+                        WHERE user_id=?", (data_string, generation_date, user_id,))
+        else:
+            c.execute("INSERT INTO user_portfolio_snapshots (user_id, generation_date, data) \
+                        VALUES (?, ?, ?)", (user_id, generation_date, data_string,))
+        db.commit()
+    except sqlite3.OperationalError as e:
+        print(e)
+        return False
+
+    return True
+
 
