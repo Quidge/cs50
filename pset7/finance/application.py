@@ -1,4 +1,5 @@
 import sqlite3
+from time import gmtime, strftime
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from tempfile import mkdtemp
@@ -35,47 +36,33 @@ Session(app)
 db = sqlite3.connect('finance.db')
 c = db.cursor()
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
 
-    # Consider adding a REFRESH button on page. Refresh gets new info (and is a POST request)
-    #   GET requests only show cached value
-    #   Otherwise, cache the value and only show that. Consider holding cache in DB?
+    user_id = session["user_id"]
+    user_portfolio = {"data_rows": [], "fetch_timestamp": None}
+    c.execute("SELECT * FROM user_portfolio_snapshots WHERE user_id=?", (user_id,))
+    user_cache = c.fetchone()
 
-    try:
-        c.execute("SELECT SUM(num_shares), stock_symbol \
-                    FROM transactions \
-                    WHERE user_id=? AND operation='BUY' \
-                    GROUP BY stock_symbol", (session["user_id"],)
-                    )
-    except (sqlite3.ProgrammingError, sqlite3.OperationalError) as e:
-        flash("{type}: {e}".format(type=type(e).__name__, e=e))
-        print(e)
-
-    db_rows = c.fetchall()
-
-    # add current day price data to holdings queried from database
-    #   shouldin't run if user doesn't own anything
-    # THIS IS EXPENSIVE ON PAGELOAD
-    rows_w_share_prices = [[value for value in row] for row in db_rows]
-    for row in rows_w_share_prices:
-        share_price = lookup(row[1])["price"]
-        row.append(share_price)
+    if (request.method == "GET" and user_cache == None) or request.method == "POST":
+        user_portfolio = get_updated_portfolio_prices(user_id)
+        store_snapshot(user_id, user_portfolio["data_rows"], user_portfolio["fetch_timestamp"])
+    else:
+        user_portfolio = get_snapshot(user_id)
 
     # get cash on hand
-    c.execute("SELECT cash FROM users WHERE ID=?", (session["user_id"],))
+    c.execute("SELECT cash FROM users WHERE ID=?", (user_id,))
     cash = c.fetchone()[0]
 
-    # render template with info, if portfolio is empty skip and give defaults
-    if len(rows_w_share_prices) > 0:
-        # sum total portfolio value
-        portfolio_sum = sum(row[0]*row[2] for row in rows_w_share_prices)
+    # determine portfolio value
+    user_portfolio_worth = sum(row[0]*row[2] for row in user_portfolio["data_rows"])
 
-        return render_template("index.html", portfolio=rows_w_share_prices,
-                                cash=cash, portfolio_sum=portfolio_sum)
-    else:
-        return render_template("index.html", portfolio=None, cash=cash, portfolio_sum=0.00)
+    return render_template("index.html",
+                            portfolio=user_portfolio["data_rows"],
+                            cash=cash,
+                            portfolio_sum=user_portfolio_worth,
+                            last_refresh=user_portfolio["fetch_timestamp"])
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -132,7 +119,7 @@ def history():
         data["price_at_time"]   = usd(row[4])
         data["timestamp"]       = row[2]
         data_rows.append(data)
-    print(data_rows)
+    #print(data_rows)
 
     return render_template("history.html", data=data_rows)
 

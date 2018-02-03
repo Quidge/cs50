@@ -3,6 +3,7 @@ import urllib.request
 import sqlite3
 import pickle
 
+from time import gmtime, strftime
 from flask import redirect, render_template, request, session
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -260,7 +261,7 @@ def store_snapshot(user_id, data_table, generation_date):
     row = c.fetchone()
 
     try:
-        if len(row) > 0:
+        if row != None:
             c.execute("UPDATE user_portfolio_snapshots \
                         SET data=?, generation_date=? \
                         WHERE user_id=?", (data_string, generation_date, user_id,))
@@ -274,4 +275,67 @@ def store_snapshot(user_id, data_table, generation_date):
 
     return True
 
+def get_snapshot(user_id):
+    """Deserializes pickle string snapshot of user portfolio.
 
+    > if snapshot found, returns    {   "data_rows": <data here>,
+                                        "fetch_timestamp": <timestamp in GMT seconds>
+                                    }
+    > else returns                  {   "data_rows": [],
+                                        "fetch_timestamp": None
+                                    }
+    """
+
+    result_object = {"data_rows": [], "fetch_timestamp": None}
+
+    db = sqlite3.connect('finance.db')
+    c = db.cursor()
+
+    c.execute("SELECT data, generation_date FROM user_portfolio_snapshots \
+                WHERE user_id=?", (session["user_id"],))
+    row = c.fetchone()
+
+    print(row)
+
+    if row != None:
+        result_object["data_rows"] = pickle.loads(row[0])
+        result_object["fetch_timestamp"] = row[1]
+
+    return result_object
+
+def get_updated_portfolio_prices(user_id):
+    """Requests current stock prices for all stocks held in portfolio."""
+
+    db = sqlite3.connect('finance.db')
+    c = db.cursor()
+
+    try:
+        assert user_id, "No user_id provided"
+    except AssertionError as e:
+        print(e)
+        raise
+
+    try:
+        c.execute("SELECT SUM(num_shares), stock_symbol \
+                    FROM transactions \
+                    WHERE user_id=? AND operation='BUY' \
+                    GROUP BY stock_symbol", (session["user_id"],)
+                    )
+    except (sqlite3.ProgrammingError, sqlite3.OperationalError) as e:
+        print(e)
+        raise
+
+    db_rows = c.fetchall() # empty list if no rows found
+
+    # add current day price data to holdings queried from database
+    #   shouldin't run if user doesn't own anything
+    # THIS IS EXPENSIVE ON PAGELOAD
+    with_prices = [[value for value in row] for row in db_rows]
+    for row in with_prices:
+        share_price = lookup(row[1])["price"]
+        row.append(share_price)
+
+    return {
+        "data_rows": with_prices,
+        "fetch_timestamp": strftime("%Y-%m-%d %H:%M:%S", gmtime())
+        }

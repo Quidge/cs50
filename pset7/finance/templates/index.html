@@ -17,7 +17,7 @@
                         <th>Shares Held</th>
                     </tr>
                 </thead>
-            {% if portfolio == None %}
+            {% if portfolio|length == 0 %}
             </table>
             <div class="jumbotron">
                 <div class="container">
@@ -30,7 +30,7 @@
                     {% for row in portfolio %}
                         <tr>
                             <td>{{ row[1] }}</td> <!-- Symbol -->
-                            <td>{{ row[2] }}</td> <!-- Shares price -->
+                            <td>{{ (row[2])|usd }}</td> <!-- Shares price -->
                             <td>{{ row[0] }}</td> <!-- Shares Held -->
                         </tr>
                     {% endfor %}
@@ -39,9 +39,18 @@
             {% endif %}
         </div>
         <div class="col-md-3">
-            <p>Cash Value: {{ cash }}</p>
-            <p>Portfolio Value: {{ portfolio_sum }}</p>
-            <p>Net worth: {{ cash + portfolio_sum }}</p>
+            <div class="container border">
+                <form method="POST" action="/">
+                    <button class="btn" type="submit">Refresh portfolio</button>
+                    <br />
+                    <p>portfolio last updated: {{ last_refresh|default('Unavailable') }}</p>
+                </form>
+            </div>
+            <div class="container border">
+                <p>Cash Value: {{ cash|usd }}</p>
+                <p>Portfolio Value: {{ portfolio_sum|usd }}</p>
+                <p>Net worth: {{ (cash + portfolio_sum)|usd }}</p>
+            </div>
         </div>
     </div>
 {% endblock %}
