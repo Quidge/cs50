@@ -9,6 +9,7 @@ from helpers import lookup
 app = Flask(__name__)
 
 db = sqlite3.connect('mashup.db')
+c = db.cursor()
 
 
 # Ensure responses aren't cached
@@ -41,6 +42,7 @@ def articles():
 
     return jsonify(lookup(geo))
 
+search_c = db.cursor() # dedicated because so many requests get fired at /search
 
 @app.route("/search", methods=["GET"])
 def search():
@@ -49,13 +51,12 @@ def search():
     Only supports zip codes right now.
     """
 
-
     postal_code = request.args.get("q")
 
     #validation
     try:
         assert postal_code, "No search query parameter provided"
-        assert len(postal_code) == 5, "Invalid zip code as query parameter"
+        assert len(postal_code) <= 5, "Invalid zip code as query parameter"
         postal_code = int(postal_code)
     except AssertionError as e:
         print(f"{type(e).__name__}: {e}")
@@ -65,19 +66,21 @@ def search():
         raise
 
     # Search the database for matching zip codes
-    c = db.cursor()
-    c.execute("SELECT * FROM places WHERE postal_code=?", (postal_code,))
-    results = c.fetchall()
+    db = sqlite3.connect('mashup.db')
+    search_c = db.cursor()
 
-    """query = [entry.strip() for entry in request.args.get("q").split(",")]
+    """**EXPERIMENTAL**
+        query = [entry.strip() for entry in request.args.get("q").split(",")]
 
         Idea is to locate zip code in string. If zip is in string, apply that.
             > Dismiss other terms and return list from there (rationale: zip
             code won't result in more than 10 results; I know this is lazy)
         If no zip present, take any two letter terms and apply them against state field."""
 
-    #return jsonify(results)
-    return None
+    search_c.execute("SELECT * FROM places WHERE postal_code LIKE ?", (str(postal_code) + "%",))
+    results = search_c.fetchall()
+
+    return jsonify(results)
 
 
 @app.route("/update")
