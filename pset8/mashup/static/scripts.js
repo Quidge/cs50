@@ -63,7 +63,66 @@ $(document).ready(function() {
 // Add marker for place to map
 function addMarker(place)
 {
-    // TODO
+    /*stupid = undefined;
+
+    function template(data) {
+        console.log('im running!')
+        htmlString = "<ul>";
+
+        // none of this is gross stuff is wrong
+        data.forEach(function(article) {
+            htmlString +=
+                "\n\t<li>"
+                    +"\n\t\t<a href="+article["link"]+">"+article["title"]+"</a>"
+                +"\n\t</li>"
+        });
+        htmlString += "</ul>";
+
+        stupid = htmlString
+        //return htmlString;
+        return 'fuck you'
+    };*/
+
+    // construct marker with coords
+    marker = new google.maps.Marker({
+        position: {lat: place[9], lng: place[10]},
+        title: place[2] + ", " + place[3]
+    });
+    marker.addListener('click', showInfo(marker, undefined));
+
+    // add to marker array
+    markers.push(marker);
+
+    // add marker to map
+    marker.setMap(map);
+
+    /*articlesHTML = $.getJSON("/articles", {geo: place[1]}, template);
+    console.log(articlesHTML);
+    console.log(articlesHTML.state())*/
+
+    // get JSON data, parse, and add it through a click event listener
+    $.getJSON("/articles", {geo: place[1]})
+    .then(function(data) {
+
+        htmlString = "<ul>";
+
+        // none of this is gross stuff is wrong
+        data.forEach(function(article) {
+            htmlString +=
+                "\n\t<li>"
+                    +"\n\t\t<a href="+article["link"]+">"+article["title"]+"</a>"
+                +"\n\t</li>"
+        });
+        htmlString += "</ul>";
+
+        return htmlString;
+    })
+    .then(function(htmlString) {
+        showInfo(marker, htmlString);
+    });
+
+    // jesus.
+
 }
 
 
@@ -110,9 +169,6 @@ function configure()
             //suggestion: Handlebars.compile(
             //    "<div>{{ID=1}}, {{ID=2}}, {{ID=3}}</div>"
             //)
-            //suggestion: function(x) {
-            //    console.log(x)
-            //}
         }
     });
 
@@ -150,7 +206,11 @@ function configure()
 // Remove markers from map
 function removeMarkers()
 {
-    // TODO
+    markers.forEach(function(e) {
+        e.setMap(null);
+        e = null;
+    })
+    markers.length = 0;
 }
 
 

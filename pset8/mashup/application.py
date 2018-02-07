@@ -106,6 +106,7 @@ def update():
     ne_lat, ne_lng = map(float, request.args.get("ne").split(","))
 
     # grab database cursor
+    db = sqlite3.connect('mashup.db')
     c = db.cursor()
 
     # init var before giant ass check
