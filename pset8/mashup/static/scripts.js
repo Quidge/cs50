@@ -63,32 +63,11 @@ $(document).ready(function() {
 // Add marker for place to map
 function addMarker(place)
 {
-    /*stupid = undefined;
-
-    function template(data) {
-        console.log('im running!')
-        htmlString = "<ul>";
-
-        // none of this is gross stuff is wrong
-        data.forEach(function(article) {
-            htmlString +=
-                "\n\t<li>"
-                    +"\n\t\t<a href="+article["link"]+">"+article["title"]+"</a>"
-                +"\n\t</li>"
-        });
-        htmlString += "</ul>";
-
-        stupid = htmlString
-        //return htmlString;
-        return 'fuck you'
-    };*/
-
     // construct marker with coords
-    marker = new google.maps.Marker({
+    var marker = new google.maps.Marker({
         position: {lat: place[9], lng: place[10]},
         title: place[2] + ", " + place[3]
     });
-    marker.addListener('click', showInfo(marker, undefined));
 
     // add to marker array
     markers.push(marker);
@@ -96,33 +75,9 @@ function addMarker(place)
     // add marker to map
     marker.setMap(map);
 
-    /*articlesHTML = $.getJSON("/articles", {geo: place[1]}, template);
-    console.log(articlesHTML);
-    console.log(articlesHTML.state())*/
-
-    // get JSON data, parse, and add it through a click event listener
-    $.getJSON("/articles", {geo: place[1]})
-    .then(function(data) {
-
-        htmlString = "<ul>";
-
-        // none of this is gross stuff is wrong
-        data.forEach(function(article) {
-            htmlString +=
-                "\n\t<li>"
-                    +"\n\t\t<a href="+article["link"]+">"+article["title"]+"</a>"
-                +"\n\t</li>"
-        });
-        htmlString += "</ul>";
-
-        return htmlString;
-    })
-    .then(function(htmlString) {
-        showInfo(marker, htmlString);
+    marker.addListener('click', function() {
+        showInfoPromise(marker, $.getJSON("/articles", {geo: place[1]}));
     });
-
-    // jesus.
-
 }
 
 
@@ -152,23 +107,14 @@ function configure()
     },
     {
         display: function(suggestion) {
-            //return {
-            //   "place_name": suggestion[2],
-            //    "state": suggestion[4],
-            //    "postal_code": suggestion[1]
-            //};
             return null;
         },
         limit: 10,
         source: search,
         templates: {
             suggestion: function(row) {
-                console.log(row)
                 return "<div>"+row[2]+", "+row[4]+", "+row[1]+"</div>";
             }
-            //suggestion: Handlebars.compile(
-            //    "<div>{{ID=1}}, {{ID=2}}, {{ID=3}}</div>"
-            //)
         }
     });
 
@@ -176,7 +122,7 @@ function configure()
     $("#q").on("typeahead:selected", function(eventObject, suggestion, name) {
 
         // Set map's center
-        map.setCenter({lat: parseFloat(suggestion.latitude), lng: parseFloat(suggestion.longitude)});
+        map.setCenter({lat: parseFloat(suggestion[9]), lng: parseFloat(suggestion[10])});
 
         // Update UI
         update();
@@ -222,39 +168,47 @@ function search(query, syncResults, asyncResults)
         q: query
     };
     $.getJSON("/search", parameters, function(data, textStatus, jqXHR) {
-        //console.log(textStatus)
-        //console.log(data)
-        // Call typeahead's callback with search results (i.e., places)
         asyncResults(data);
     });
 }
 
+function showInfoPromise(marker, promisedContent) {
+    // expects promisedContent to be a promise of JSON info
 
-// Show info window at marker with content
-function showInfo(marker, content)
-{
-    // Start div
-    let div = "<div id='info'>";
-    if (typeof(content) == "undefined")
-    {
-        // http://www.ajaxload.info/
-        div += "<img alt='loading' src='/static/ajax-loader.gif'/>";
-    }
-    else
-    {
-        div += content;
-    }
+    // synch
+    let loadingDiv = "<div id='info'><img alt='loading' "
+                + "src='/static/ajax-loader.gif' />"
+                + "</div>";
+    info.setContent(loadingDiv);
 
-    // End div
-    div += "</div>";
+    // asynch
+    promisedContent
+        .done(function(data) {
 
-    // Set info window's content
-    info.setContent(div);
+            let contentDiv = "<div id='info'>";
+
+            // create unordered list and append to info div
+            htmlString = "<ul>";
+            var counter = 0;
+            for (var article of data) {
+                if (counter > 9) break;
+                htmlString +=
+                    "\n\t<li>"
+                        +"\n\t\t<a href="+article["link"]+">"+article["title"]+"</a>"
+                    +"\n\t</li>"
+                counter++;
+            };
+
+            htmlString += "</ul>";
+            contentDiv += htmlString;
+            contentDiv += "</div>";
+            info.setContent(contentDiv);
+            info.open(map, marker);
+        });
 
     // Open info window (if not already open)
     info.open(map, marker);
 }
-
 
 // Update UI's markers
 function update()
