@@ -42,7 +42,9 @@ def articles():
 
     return jsonify(lookup(geo))
 
-search_c = db.cursor() # dedicated because so many requests get fired at /search
+
+search_c = db.cursor()  # dedicated because so many requests get fired at /search
+
 
 @app.route("/search", methods=["GET"])
 def search():
@@ -53,7 +55,7 @@ def search():
 
     postal_code = request.args.get("q")
 
-    #validation
+    # validation
     try:
         assert postal_code, "No search query parameter provided"
         assert len(postal_code) <= 5, "Invalid zip code as query parameter"
@@ -116,7 +118,7 @@ def update():
     if sw_lng <= ne_lng:
 
         # Doesn't cross the antimeridian
-        #rows = db.execute("""SELECT * FROM places
+        # rows = db.execute("""SELECT * FROM places
         #                  WHERE :sw_lat <= latitude AND latitude <= :ne_lat AND (:sw_lng <= longitude AND longitude <= :ne_lng)
         #                  GROUP BY country_code, place_name, admin_code1
         #                  ORDER BY RANDOM()
@@ -132,7 +134,7 @@ def update():
     else:
 
         # Crosses the antimeridian
-        #rows = db.execute("""SELECT * FROM places
+        # rows = db.execute("""SELECT * FROM places
         #                  WHERE :sw_lat <= latitude AND latitude <= :ne_lat AND (:sw_lng <= longitude OR longitude <= :ne_lng)
         #                  GROUP BY country_code, place_name, admin_code1
         #                  ORDER BY RANDOM()
